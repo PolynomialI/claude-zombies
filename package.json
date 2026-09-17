@@ -1,0 +1,28 @@
+{
+  "name": "claude-zombies",
+  "version": "6.1.0",
+  "private": true,
+  "description": "Round-based 3D FPS in a single self-contained HTML file",
+  "scripts": {
+    "test:nav": "node tests/pathtest.js",
+    "test:anim": "node tests/animcheck.js",
+    "test:play": "node tests/playtest.js",
+    "check": "node -e \"const fs=require('fs');fs.writeFileSync('/tmp/g.js',fs.readFileSync('game.html','utf8').match(/<script>([\\s\\S]*?)<\\/script>/g).pop().replace(/<\\/?script>/g,''))\" && node --check /tmp/g.js && echo SYNTAX_OK",
+    "check:geom": "node tools/geomcheck.js",
+    "shots": "node tools/shots.js",
+    "test:e2e": "node tools/e2e.js",
+    "test:net": "node tools/nettest.js",
+    "serve": "node server/relay.js"
+  },
+  "devDependencies": {
+    "jsdom": "^24.0.0",
+    "playwright": "^1.63.0"
+  },
+  "dependencies": {
+    "three": "^0.128.0",
+    "ws": "^8.21.3"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
