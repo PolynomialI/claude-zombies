@@ -1,0 +1,25 @@
+# Render blueprint: the relay as a free web service, TLS and a hostname included.
+#
+# THIS FILE HAS TO SIT IN THE REPOSITORY ROOT, not in deploy/ -- Render only looks for
+# render.yaml at the top level, and a blueprint it cannot find is a blueprint that does
+# nothing.
+#
+#   1. push this repo to GitHub
+#   2. render.com -> New -> Blueprint -> pick the repo
+#   3. it reads this file; press Apply
+#
+# It hands back an https://<name>.onrender.com address. That address IS the game: everyone
+# opens it, no local machine runs anything. The free plan sleeps after about 15 minutes idle
+# and takes half a minute to wake, and a wake clears every room — which costs nothing, because
+# a room only exists while people are in it.
+services:
+  - type: web
+    name: claude-zombies
+    runtime: node
+    plan: free
+    buildCommand: npm install --omit=dev
+    startCommand: node server/relay.js
+    healthCheckPath: /cz/health
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
