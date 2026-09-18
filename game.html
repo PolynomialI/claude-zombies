@@ -83,17 +83,34 @@ canvas{display:block;position:fixed;inset:0;width:100%;height:100%}
 #down .bl{margin:9px auto 0;width:230px;height:6px;background:rgba(0,0,0,.6);border:1px solid rgba(231,226,214,.3)}
 #down .bl i{display:block;height:100%;background:#e0796a}
 
-#score{position:absolute;right:26px;top:20px;text-align:right}
+/* The right-hand column, top to bottom: minimap, buffs, then a stack pinned to the bottom
+   corner holding the points above the weapon bar. The stack is a flex column rather than three
+   absolutely-positioned boxes because the weapon bar's height depends on how many slots you
+   have, and the points have to sit directly above it either way. */
+#minimap{position:absolute;right:18px;top:16px;width:150px;height:150px;
+  background:rgba(8,9,11,.74);border:1px solid rgba(231,226,214,.24);
+  box-shadow:0 6px 22px rgba(0,0,0,.55)}
+/* the global canvas rule pins the WebGL canvas to the viewport; this one is a HUD element */
+#minimap canvas{position:static;inset:auto;display:block;width:100%;height:100%}
+
+#rightfoot{position:absolute;right:0;bottom:16px;display:flex;flex-direction:column;
+  align-items:flex-end;gap:16px}
+/* On the left the stack has to clear the health bar and the power readout, which live in that
+   corner; on the right the corner is empty. Before the weapon bar moved down it was vertically
+   centred, so the two never met. */
+#rightfoot.left{right:auto;left:0;align-items:flex-start;bottom:108px}
+#score{text-align:right;padding-right:16px}
+#rightfoot.left #score{text-align:left;padding-right:0;padding-left:16px}
 #points{font-family:"Black Ops One",Impact,sans-serif;font-size:34px;color:var(--brass);text-shadow:0 2px 0 #241a06}
 #score .cap{font-size:13px;letter-spacing:.34em;color:var(--dim);margin-top:-4px}
-#gain{position:absolute;right:26px;top:82px;text-align:right;font-size:25px;font-weight:700;color:var(--brass);opacity:0;text-shadow:0 2px 6px #000}
+#gain{position:absolute;right:16px;bottom:100%;margin-bottom:6px;text-align:right;font-size:25px;font-weight:700;color:var(--brass);opacity:0;text-shadow:0 2px 6px #000}
+#rightfoot.left #gain{right:auto;left:16px;text-align:left}
 #gain.on{animation:gn .7s ease-out}
 @keyframes gn{0%{opacity:1;transform:translateX(16px)}100%{opacity:0}}
-#buffs{position:absolute;right:26px;top:120px;display:flex;flex-direction:column;gap:5px;align-items:flex-end}
+#buffs{position:absolute;right:26px;top:180px;display:flex;flex-direction:column;gap:5px;align-items:flex-end}
 .buff{font-size:15px;letter-spacing:.14em;padding:2px 9px;border-left:3px solid currentColor;background:rgba(0,0,0,.42)}
 
-#hotbar{position:absolute;right:0;top:50%;transform:translateY(-50%);
-  display:flex;flex-direction:column;gap:8px;align-items:flex-end;padding-right:16px;
+#hotbar{display:flex;flex-direction:column;gap:8px;align-items:flex-end;padding-right:16px;
   transition:opacity .45s ease}
 #hotbar.idle{opacity:.44}
 .slot{position:relative;display:flex;align-items:center;gap:13px;width:238px;
@@ -196,7 +213,7 @@ button:focus-visible{outline:3px solid var(--brass);outline-offset:4px}
 #cross.dot i:nth-child(-n+4){display:none}
 #cross.dot i:nth-child(5){width:5px;height:5px;left:12.5px;top:12.5px;background:rgba(236,230,218,.95)}
 #cross.none i{display:none}
-#hotbar.left{right:auto;left:0;padding-right:0;padding-left:16px;align-items:flex-start}
+#hotbar.left{padding-right:0;padding-left:16px;align-items:flex-start}
 #hotbar.left .slot{flex-direction:row-reverse;border-right:none;
   border-left:3px solid rgba(231,226,214,.13);transform:translateX(-30px) scale(.93);transform-origin:0 50%;
   background:linear-gradient(270deg,rgba(9,10,12,0),rgba(9,10,12,.7) 22%,rgba(14,15,18,.86))}
@@ -250,6 +267,7 @@ button.ghost:hover{background:rgba(231,226,214,.1);transform:translateY(-2px)}
 }
 @media (max-width:720px){
   #roundNum{font-size:48px}#points{font-size:25px}#vitals{width:150px}
+  #minimap{width:104px;height:104px;right:12px;top:12px}#buffs{top:128px}
   .slot{width:168px;gap:9px}.slot .ic{width:48px;height:17px}.slot .g{font-size:13px}
   .slot .a b{font-size:15px}#prompt{font-size:18px}
 }
@@ -348,7 +366,6 @@ button.ghost:hover{background:rgba(231,226,214,.1);transform:translateY(-2px)}
 .credlist b{display:block;font-size:11px;letter-spacing:.3em;color:var(--dim);
   margin-top:14px;font-weight:600}
 .credlist b:first-child{margin-top:0}
-/* one name per line: two testers are two people, not one long word */
 .credlist span{display:block;color:var(--ash)}
 .hnote{margin-top:26px;max-width:46ch}
 #coop .card{max-width:560px}
@@ -408,10 +425,13 @@ button.ghost:hover{background:rgba(231,226,214,.1);transform:translateY(-2px)}
   <div id="cross"><i></i><i></i><i></i><i></i><i></i></div>
   <div id="mark"></div>
   <div id="round"><div class="cap">ROUND</div><div id="roundNum">1</div><div id="left"></div></div>
-  <div id="score"><div id="points">500</div><div class="cap">POINTS</div></div>
-  <div id="gain"></div>
+  <div id="minimap" class="hide"><canvas id="mmc" width="150" height="150"></canvas></div>
   <div id="buffs"></div>
-  <div id="hotbar"></div>
+  <div id="rightfoot">
+    <div id="gain"></div>
+    <div id="score"><div id="points">500</div><div class="cap">POINTS</div></div>
+    <div id="hotbar"></div>
+  </div>
   <div id="vitals"><div id="perks"></div><div id="hpbar"><div id="hpfill"></div></div><div id="power">POWER OFF</div></div>
   <div id="prompt" class="hide"></div>
   <div id="netros" class="hide"></div>
@@ -441,8 +461,7 @@ button.ghost:hover{background:rgba(231,226,214,.1);transform:translateY(-2px)}
         <b>CREATOR</b>
         <span>Polynomial</span>
         <b>BETA TESTERS</b>
-        <span>Pisslip</span>
-        <span>Xylora</span>
+        <span>Pisslip, Xylora</span>
       </div>
     </div>
     <p class="note hnote">Built on three.js. <span id="ver"></span></p>
@@ -801,7 +820,8 @@ var OPTDEF=[
   {id:'hotbarSide',t:'seg',n:'Weapon bar side',o:['Left','Right'],d:1},
   {id:'hotbarFade',t:'toggle',n:'Fade weapon bar when idle',d:1},
   {id:'crosshair',t:'seg',n:'Crosshair',o:['Cross','Dot','None'],d:0},
-  {id:'dmgArrows',t:'toggle',n:'Damage direction markers',d:1}
+  {id:'dmgArrows',t:'toggle',n:'Damage direction markers',d:1},
+  {id:'minimap',t:'toggle',n:'Minimap',d:1}
 ]},
 {tab:'CONTROLS',note:'Click a key, then press the new one. Swapping onto a taken key trades them.',rows:[
   {id:'forward',t:'bind',n:'Move forward'},{id:'back',t:'bind',n:'Move back'},
@@ -3914,6 +3934,7 @@ function loadMap(id){
   (function(){var ys=[],zk;
     for(zk in ZONES){var zy=ZONES[zk].y||0;if(ys.indexOf(zy)<0)ys.push(zy);}
     MULTI=ys.length>1;})();
+  mmBounds();
   HOMEZONE=m.home;
   SPAWN0.set(m.start.x,0,m.start.z); YAW0=m.start.yaw;
   ground.visible=m.ground!==false;
@@ -5177,6 +5198,80 @@ function zoneBanner(name){
   var z=$('#zone'); z.textContent=name;
   z.classList.remove('on'); void z.offsetWidth; z.classList.add('on');
 }
+/* ---- minimap ----
+ * A plain 2D canvas: the rooms you have opened, a red dot per zombie, a dot per team-mate in
+ * their own colour and an arrow for you. North-up rather than heading-up, because these maps
+ * are read as floor plans and a spinning one is harder to place yourself on.
+ *
+ * It draws at 15 Hz, not 60. Nothing on it moves fast enough to need more, and the budget for
+ * this whole feature on the target machine is "not measurable".
+ *
+ * Only the storey you are on: the hotel stacks three floors on one footprint, so drawing them
+ * all at once would be a scribble. Backing store is 1:1 with the CSS size on purpose -- a
+ * device-pixel-ratio canvas would be sharper and four times the fill.
+ */
+var MM={c:null,g:null,t:0,bb:null};
+function mmBounds(){
+  var bb={x0:1e9,x1:-1e9,z0:1e9,z1:-1e9},k,Z,any=false;
+  for(k in ZONES){
+    Z=ZONES[k]; any=true;
+    if(Z.x0<bb.x0)bb.x0=Z.x0; if(Z.x1>bb.x1)bb.x1=Z.x1;
+    if(Z.z0<bb.z0)bb.z0=Z.z0; if(Z.z1>bb.z1)bb.z1=Z.z1;
+  }
+  if(!any){MM.bb=null;return null;}
+  bb.x0-=2; bb.x1+=2; bb.z0-=2; bb.z1+=2;
+  MM.bb=bb; return bb;
+}
+function drawMinimap(dt){
+  var el=$('#minimap');
+  if(!el)return;
+  if(!OPT.minimap){if(!el.classList.contains('hide'))el.classList.add('hide');return;}
+  el.classList.remove('hide');
+  MM.t-=dt; if(MM.t>0)return; MM.t=1/15;
+  if(!MM.c){MM.c=$('#mmc'); if(!MM.c)return; MM.g=MM.c.getContext?MM.c.getContext('2d'):null;}
+  var g=MM.g,bb=MM.bb||mmBounds();
+  if(!g||!g.clearRect||!bb)return;
+  var W=MM.c.width,H=MM.c.height;
+  var w=bb.x1-bb.x0,h=bb.z1-bb.z0,s=Math.min(W/w,H/h);
+  var ox=(W-w*s)/2-bb.x0*s,oz=(H-h*s)/2-bb.z0*s;
+  var py=P.pos.y,i,k;
+  g.clearRect(0,0,W,H);
+  // the rooms you have paid for, on this floor
+  g.fillStyle='rgba(231,226,214,.13)';
+  for(k in ZONES){
+    var Z=ZONES[k];
+    if(!zoneOpen(k))continue;
+    if(Math.abs((Z.y||0)-py)>2.6)continue;
+    g.fillRect(Z.x0*s+ox,Z.z0*s+oz,(Z.x1-Z.x0)*s,(Z.z1-Z.z0)*s);
+  }
+  // every zombie on this floor
+  g.fillStyle='#e0473a';
+  for(i=0;i<ZS.length;i++){
+    var z=ZS[i];
+    if(z.dead)continue;
+    if(Math.abs(z.obj.position.y-py)>2.6)continue;
+    g.fillRect(z.obj.position.x*s+ox-1.5,z.obj.position.z*s+oz-1.5,3,3);
+  }
+  // team-mates, each in the colour of their own avatar
+  if(NET.on)for(k in NET.av){
+    var a=NET.av[k];
+    if(!a.buf.length||a.dn===2)continue;
+    if(Math.abs(a.g.position.y-py)>2.6)continue;
+    g.fillStyle='#'+('00000'+(AVCOL[(k|0)%AVCOL.length]).toString(16)).slice(-6);
+    g.fillRect(a.g.position.x*s+ox-2,a.g.position.z*s+oz-2,4,4);
+  }
+  // you, pointing where you are looking
+  var x=P.pos.x*s+ox,y=P.pos.z*s+oz;
+  var fx=-Math.sin(P.yaw),fz=-Math.cos(P.yaw);
+  g.fillStyle=(P.down||P.out)?'#e0796a':'#e7e2d6';
+  if(g.beginPath){
+    g.beginPath();
+    g.moveTo(x+fx*6.5,y+fz*6.5);
+    g.lineTo(x-fz*4-fx*3.5,y+fx*4-fz*3.5);
+    g.lineTo(x+fz*4-fx*3.5,y-fx*4-fz*3.5);
+    g.closePath(); g.fill();
+  }
+}
 function flashScreen(a){
   var f=$('#flash'); f.style.transition='none'; f.style.opacity=a;
   requestAnimationFrame(function(){f.style.transition='opacity .55s';f.style.opacity=0;});
@@ -5834,6 +5929,7 @@ function applyOpt(){
   renderer.setSize(window.innerWidth,window.innerHeight);
   $('#cross').className=['','dot','none'][OPT.crosshair]||'';
   $('#hotbar').classList.toggle('left',OPT.hotbarSide===0);
+  $('#rightfoot').classList.toggle('left',OPT.hotbarSide===0);
   $('#fps').classList.toggle('hide',!OPT.showFps);
   if(!OPT.hotbarFade)$('#hotbar').classList.remove('idle');
 }
@@ -6645,7 +6741,7 @@ function step(dt){
   if(hotWake&&T>hotWake){hotWake=0;if(OPT.hotbarFade)$('#hotbar').classList.add('idle');}
   if(reviveScan(dt))focusBuy=null; else scanBuys();
   refreshHotbar(); refreshBuffs(); updateVignette(dt); refreshDevTag();
-  refreshDown(); refreshRoster();
+  refreshDown(); refreshRoster(); drawMinimap(dt);
 }
 
 
@@ -7282,7 +7378,7 @@ function die(){
   over=true; running=false; AU.die();
   P.down=false; P.out=false;
   $('#down').classList.add('hide'); $('#netros').classList.add('hide'); downKey=''; rosKey='';
-  $('#hud').classList.remove('coop');
+  $('#hud').classList.remove('coop'); $('#minimap').classList.add('hide');
   document.exitPointerLock&&document.exitPointerLock();
   $('#hud').classList.add('hide');
   $('#dRound').textContent=S.round; $('#dKills').textContent=S.kills;
@@ -7648,34 +7744,126 @@ function netTag(name,warn){
   s.scale.set(1.9,.48,1); s.renderOrder=6;
   return s;
 }
+/* Which shape of gun a remote player is carrying, as one number on the wire: a sidearm, a
+   rifle-ish thing, or something belt-fed. Twelve exact models would be twelve times the
+   geometry for a figure usually seen at twenty metres; three silhouettes read correctly and
+   cost nothing. */
+var GCLS={pistol:0,smg:1,shotgun:1,rifle:1,carbine:1,dmr:1,burst:1,autoshot:1,
+  lmg:2,launcher:2,ray:2};
+function gunClass(mdl){var c=GCLS[mdl];return typeof c==='number'?c:1;}
+
+/* A survivor rather than a crate stack: jacket, webbing, boots, a face with eyes behind a
+ * visor, and both hands on something gun-shaped. Still boxes -- it has to build in a
+ * millisecond and cast a shadow on a Celeron -- but boxes arranged like a person.
+ *
+ * The body hangs off a sub-group so a downed player can be tipped onto the floor without
+ * taking the name tag with them: the tag stays on the outer group, upright and legible, which
+ * is how you find somebody to pick up. Limbs hang off pivots at the shoulder and hip, so a
+ * stride rotates the whole leg instead of sliding a box about its own middle, and the arms
+ * and gun share one `aim` group that carries the pitch -- which is what makes a remote player
+ * look like they are aiming at something rather than holding a plank.
+ */
 function buildAvatar(peer){
-  /* The body hangs off a sub-group so a downed player can be tipped onto the floor without
-     taking the name tag with them: the tag stays on the outer group, upright and legible,
-     which is how you find somebody to pick up. */
   var g=new THREE.Group(),bg=new THREE.Group(),col=AVCOL[peer.id%AVCOL.length];
   g.add(bg);
-  var body=new THREE.MeshLambertMaterial({color:col});
-  var dark=new THREE.MeshLambertMaterial({color:0x2b3038});
-  function part(w,h,d,mat,x,y,z){
+  var c0=new THREE.Color(col);
+  var kit=new THREE.MeshLambertMaterial({color:c0.getHex()});
+  var kitD=new THREE.MeshLambertMaterial({color:c0.clone().multiplyScalar(.6).getHex()});
+  var dark=new THREE.MeshLambertMaterial({color:0x23272e});
+  var skin=new THREE.MeshLambertMaterial({color:0xc2996f});
+  var steel=new THREE.MeshLambertMaterial({color:0x4b5058});
+  var glass=new THREE.MeshBasicMaterial({color:0x16242c});
+  function box(par,w,h,d,mat,x,y,z,shadow){
     var m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);
-    m.position.set(x,y,z); m.castShadow=true; bg.add(m); return m;
+    m.position.set(x,y,z);
+    if(shadow)m.castShadow=true;
+    par.add(m); return m;
   }
-  var torso=part(.62,.78,.36,body,0,1.14,0);
-  var head=part(.38,.38,.36,body,0,1.6,0);
-  part(.3,.12,.34,dark,0,1.64,-.02);
-  var armL=part(.16,.62,.18,body,-.39,1.16,.04);
-  var armR=part(.16,.62,.18,body,.39,1.16,.04);
-  var legL=part(.22,.82,.24,dark,-.17,.42,0);
-  var legR=part(.22,.82,.24,dark,.17,.42,0);
-  var gun=part(.14,.16,.7,dark,.34,1.16,-.42);
+  function piv(par,x,y,z){var p=new THREE.Group();p.position.set(x,y,z);par.add(p);return p;}
+
+  /* ---- legs, from the hip so a stride swings ---- */
+  var hipL=piv(bg,-.17,.84,0),hipR=piv(bg,.17,.84,0);
+  box(hipL,.21,.5,.22,dark,0,-.25,0,true);      // thigh
+  box(hipL,.19,.34,.2,dark,0,-.63,0);           // shin
+  box(hipL,.2,.12,.3,dark,0,-.8,-.04);          // boot
+  box(hipR,.21,.5,.22,dark,0,-.25,0,true);
+  box(hipR,.19,.34,.2,dark,0,-.63,0);
+  box(hipR,.2,.12,.3,dark,0,-.8,-.04);
+
+  /* ---- body ---- */
+  var torso=box(bg,.6,.62,.34,kit,0,1.12,0,true);
+  box(bg,.66,.22,.38,kitD,0,1.36,0);            // shoulders
+  box(bg,.44,.26,.4,kitD,0,1.12,.01);           // chest webbing
+  box(bg,.12,.2,.06,steel,-.13,1.14,-.19);      // two pouches on the front
+  box(bg,.12,.2,.06,steel,.13,1.14,-.19);
+  box(bg,.62,.09,.36,dark,0,.85,0);             // belt
+  box(bg,.36,.4,.16,kitD,0,1.18,.23,true);      // pack
+  box(bg,.38,.06,.18,dark,0,1.32,.24);
+
+  /* ---- head ---- */
+  var neck=piv(bg,0,1.44,0);
+  box(neck,.14,.1,.14,skin,0,.04,0);
+  var head=box(neck,.34,.32,.32,skin,0,.25,0,true);
+  box(neck,.36,.1,.34,dark,0,.4,0);             // cap
+  box(neck,.38,.05,.12,dark,0,.36,-.16);        // peak
+  box(neck,.3,.08,.04,glass,0,.24,-.17);        // visor
+  box(neck,.06,.04,.03,glass,-.08,.26,-.17);    // eyes behind it
+  box(neck,.06,.04,.03,glass,.08,.26,-.17);
+
+  /* ---- arms and weapon, one group so they aim together ----
+     Held at the shoulder, not the hip: at twenty metres the difference between a player who
+     is aiming and a player carrying a plank is entirely in where the gun sits and whether
+     both hands are on it. Sleeves are the darker shade so the arms read as arms against the
+     jacket instead of melting into the torso. */
+  var aim=piv(bg,0,1.34,0);
+  var shL=piv(aim,-.28,.02,0),shR=piv(aim,.28,.02,0);
+  box(shL,.15,.32,.15,kitD,0,-.13,-.02,true);   // upper arm
+  box(shL,.13,.13,.4,kitD,0,-.22,-.24);         // forearm, reaching the foregrip
+  box(shL,.12,.12,.13,skin,0,-.22,-.47);        // support hand
+  box(shR,.15,.32,.15,kitD,0,-.13,-.02,true);
+  box(shR,.13,.13,.26,kitD,0,-.2,-.16);         // forearm, shorter, on the grip
+  box(shR,.12,.12,.13,skin,0,-.2,-.32);         // trigger hand
+  shL.rotation.x=-.16; shR.rotation.x=-.06;
+
+  var gun=piv(aim,.13,-.13,-.34);
+  var gBody=box(gun,.1,.16,.46,steel,0,0,0);         // receiver
+  var gBarrel=box(gun,.06,.06,.5,steel,0,.035,-.5);  // barrel
+  var gMag=box(gun,.08,.24,.12,dark,0,-.18,.03);     // magazine
+  var gStock=box(gun,.09,.15,.28,dark,0,-.01,.36);   // stock
+  var gGrip=box(gun,.07,.15,.09,dark,0,-.14,.16);    // pistol grip
+  var gFore=box(gun,.07,.07,.18,dark,0,-.07,-.32);   // foregrip under the barrel
+  var gOptic=box(gun,.06,.07,.16,dark,0,.12,-.07);   // sight on top
+  var gDrum=box(gun,.14,.2,.2,dark,0,-.2,.05);       // belt box, class 2 only
+  var gunParts={body:gBody,barrel:gBarrel,mag:gMag,stock:gStock,grip:gGrip,
+    fore:gFore,optic:gOptic,drum:gDrum};
+
   var name=peer.name||('Player '+peer.id);
   var tag=netTag(name); tag.position.set(0,2.08,0);
   var dtag=netTag('DOWN',1); dtag.position.set(0,1.28,0); dtag.visible=false;
   g.add(tag); g.add(dtag);
   world.add(g);
-  return {g:g,bg:bg,head:head,torso:torso,armL:armL,armR:armR,legL:legL,legR:legR,gun:gun,
+  var a={g:g,bg:bg,head:head,neck:neck,torso:torso,aim:aim,
+    hipL:hipL,hipR:hipR,shL:shL,shR:shR,gun:gun,gp:gunParts,gcls:-1,
     tag:tag,dtag:dtag,id:peer.id,name:name,
     buf:[],phase:Math.random()*6.3,hp:100,fired:0,dn:0};
+  avatarGun(a,1);
+  return a;
+}
+/* One gun, three silhouettes, switched by visibility and a couple of scales rather than by
+   building another twenty boxes every time somebody swaps weapon. */
+function avatarGun(a,cls){
+  if(a.gcls===cls)return;
+  a.gcls=cls;
+  var p=a.gp;
+  p.stock.visible=cls>0;
+  p.fore.visible=cls>0;
+  p.optic.visible=cls>0;
+  p.drum.visible=cls===2;
+  p.mag.visible=cls!==2;
+  p.barrel.scale.z=cls===0?.4:(cls===2?1.2:1);
+  p.barrel.position.z=cls===0?-.33:(cls===2?-.55:-.5);
+  p.body.scale.set(cls===2?1.3:1,cls===2?1.2:1,cls===0?.6:1);
+  a.gun.scale.setScalar(cls===0?.8:1);
 }
 function netAvatar(id){
   if(NET.av[id])return NET.av[id];
@@ -7710,7 +7898,7 @@ function netSyncNames(){
 function netPeerState(m){
   if(m.from===NET.id)return;
   var a=netAvatar(m.from);
-  a.buf.push({t:perfNow(),p:m.p,y:m.y,pt:m.pt,mv:m.mv||0});
+  a.buf.push({t:perfNow(),p:m.p,y:m.y,pt:m.pt,mv:m.mv||0,g:m.g});
   if(a.buf.length>12)a.buf.shift();
   a.hp=m.hp; a.dn=m.dn||0;
 }
@@ -7735,19 +7923,31 @@ function netDrawAvatars(dt){
     var x=lo.p[0]+(hi.p[0]-lo.p[0])*f,y=lo.p[1]+(hi.p[1]-lo.p[1])*f,z=lo.p[2]+(hi.p[2]-lo.p[2])*f;
     a.g.position.set(x,y,z);
     var dy=hi.y-lo.y; while(dy>Math.PI)dy-=6.2832; while(dy<-Math.PI)dy+=6.2832;
-    a.g.rotation.y=lo.y+dy*f+Math.PI;
+    /* No half turn here. A body whose front is -z, which is how this one is built, faces the
+       same way as the player's own forward vector at the same yaw; the extra PI pointed
+       everybody -- and their gun -- directly behind themselves. */
+    a.g.rotation.y=lo.y+dy*f;
     var mv=lo.mv+(hi.mv-lo.mv)*f;
-    a.phase+=dt*(mv>.2?9.5:0);
-    var sw=Math.sin(a.phase)*(mv>.2?.7:0);
-    a.legL.rotation.x=sw; a.legR.rotation.x=-sw;
-    a.armL.rotation.x=-sw*.5; a.armR.rotation.x=sw*.25;
-    a.gun.rotation.x=(hi.pt||0)*.5;
-    a.head.rotation.x=(hi.pt||0)*.7;
-    if(a.fired>0){a.fired-=dt;a.gun.position.z=-.42+.06;}else a.gun.position.z=-.42;
+    var walking=mv>.2;
+    a.phase+=dt*(walking?9.5:0);
+    var sw=Math.sin(a.phase)*(walking?.62:0),cw=Math.cos(a.phase);
+    /* Legs swing from the hip; the arms do not, because they are holding a gun. What sells a
+       walk on a figure carrying a rifle is the hips rising and the shoulders rolling, not the
+       arms pumping. */
+    a.hipL.rotation.x=sw; a.hipR.rotation.x=-sw;
+    a.bg.position.y=(walking?Math.abs(cw)*.035:0);
+    a.bg.rotation.z=walking?cw*.035:0;
+    var pt=hi.pt||0;
+    a.aim.rotation.x=pt*.55;
+    a.neck.rotation.x=pt*.5;
+    // the whole weapon kicks back along its own barrel, not just a box sliding sideways
+    if(a.fired>0){a.fired-=dt;a.gun.position.z=-.34+.07;a.aim.rotation.x=pt*.55-.05;}
+    else a.gun.position.z=-.34;
+    if(typeof hi.g==='number')avatarGun(a,hi.g);
     // on the floor, or out of the round and not in the world at all
     a.g.visible=a.dn!==2;
     a.bg.rotation.x=a.dn===1?1.32:0;
-    a.bg.position.y=a.dn===1?-.28:0;
+    if(a.dn===1){a.bg.position.y=-.28;a.bg.rotation.z=0;}
     a.dtag.visible=a.dn===1;
   }
 }
@@ -7902,7 +8102,7 @@ function netTick(dt){
     var sp=Math.sqrt(P.vel.x*P.vel.x+P.vel.z*P.vel.z);
     netSend({t:'me',p:[+P.pos.x.toFixed(2),+P.pos.y.toFixed(2),+P.pos.z.toFixed(2)],
       y:+P.yaw.toFixed(3),pt:+P.pitch.toFixed(3),hp:Math.round(P.hp/P.max*100),
-      mv:+sp.toFixed(1),dn:P.out?2:(P.down?1:0)});
+      mv:+sp.toFixed(1),dn:P.out?2:(P.down?1:0),g:gunClass(gun().mdl)});
     if(netHost()){netSend(netSnapshot());netWipeCheck();}
   }
 }
