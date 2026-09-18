@@ -502,6 +502,7 @@ button.ghost:hover{background:rgba(231,226,214,.1);transform:translateY(-2px)}
 <div id="pause" class="screen hide">
   <div class="card">
     <h1 style="font-size:50px">PAUSED</h1>
+    <p class="tag" id="pauseWhy" style="margin:10px 0 18px"></p>
     <div class="btnrow"><button id="resume">RESUME</button><button id="setOpen2" class="ghost">SETTINGS</button></div>
     <div class="btnrow" style="margin-top:14px">
       <div class="dd">
@@ -603,7 +604,7 @@ var T=0;
    thing I am playing actually the build with the fix in it" has a two-second answer: a relay
    serves game.html out of whatever repo it was deployed from, which can lag behind. Bump it
    with the version in package.json. */
-var CZ_VER='6.3.0';
+var CZ_VER='6.4.0';
 
 /* ======================= audio ======================= */
 var AU={ctx:null,master:null,noise:null,lastGroan:0,
@@ -6308,8 +6309,36 @@ var keys={};
  * surface as a page error. */
 function grabPointer(){
   var el=renderer.domElement;
+  /* No pointer-lock API at all is not a refusal, and must not pause: there is no click that
+     could ever fix it, so pausing would strand every browser that lacks it -- and jsdom, which
+     is how the whole test suite drives the game. Only an API that exists and says no is worth
+     interrupting the player for, because then a click is the answer. */
   if(!el.requestPointerLock)return;
-  try{var r=el.requestPointerLock();if(r&&r['catch'])r['catch'](function(){});}catch(e){}
+  try{
+    var r=el.requestPointerLock();
+    // new builds reject a promise, old ones fire pointerlockerror; both land in lockRefused
+    if(r&&r['catch'])r['catch'](function(){lockRefused();});
+  }catch(e){lockRefused();}
+}
+/* The browser only grants pointer lock off a user gesture, and a guest pulled into a run by
+ * the host has not made one. Swallowing that left the game running with no mouse look and no
+ * way out: the pause screen is driven by LOSING a lock, so a lock never held meant Escape did
+ * nothing, and the canvas click that re-locks only ran while already paused. So show the pause
+ * screen and say why -- its RESUME button is a real click, and a real click is the one thing
+ * the browser will accept. */
+var lockWarned=false;
+function lockRefused(){
+  if(!running||over||CON.open||paused)return;
+  if(!$('#settings').classList.contains('hide'))return;
+  /* Said once per run. A browser that never grants pointer lock at all -- a managed profile
+     with it switched off -- must not be pushed back to the pause screen every time it
+     refuses, or there is no way to play at all. After the first refusal the game runs
+     without mouse look, which is poor but not a trap. */
+  if(lockWarned)return;
+  lockWarned=true;
+  setPaused(true);
+  $('#pauseWhy').textContent='Click RESUME to take the mouse \u2014 your browser wants a click '+
+    'before it will hand it over, and the host started this run for you.';
 }
 function held(a){
   var c=BINDS[a]; if(!c)return false;
@@ -6354,7 +6383,12 @@ addEventListener('keydown',function(e){
   if(CON.open)return;
   if(k==='Escape'){
     if(!$('#settings').classList.contains('hide')){closeSettings();e.preventDefault();return;}
-    if(running&&!over&&document.exitPointerLock)document.exitPointerLock();
+    if(running&&!over){
+      if(document.pointerLockElement===renderer.domElement){
+        if(document.exitPointerLock)document.exitPointerLock();
+      }else setPaused(true);   // nothing to release, so open the menu directly
+      e.preventDefault();
+    }
     return;
   }
   if(keys[k])return; keys[k]=true;
@@ -6374,6 +6408,10 @@ document.addEventListener('mousedown',function(e){
 },true);
 renderer.domElement.addEventListener('mousedown',function(e){
   if(CON.open)return;
+  /* The click that asks for the mouse should not also fire the gun. Only the first one,
+     though: once lockWarned says this browser will not grant it, clicks have to shoot or
+     there is no game left. */
+  if(running&&!over&&!lockWarned&&document.pointerLockElement!==renderer.domElement)return;
   mouseBtn['Mouse'+e.button]=true;
   if(!running||paused||over)return;
   var a=actionFor('Mouse'+e.button);
@@ -6399,6 +6437,7 @@ addEventListener('mousemove',function(e){
   VM.tgtSwayX+=e.movementX*.0016; VM.tgtSwayY-=e.movementY*.0016;
   VM.tgtSwayX=clamp(VM.tgtSwayX,-.09,.09); VM.tgtSwayY=clamp(VM.tgtSwayY,-.09,.09);
 });
+document.addEventListener('pointerlockerror',function(){lockRefused();});
 document.addEventListener('pointerlockchange',function(){
   if(!running||over||CON.open)return;
   if(!$('#settings').classList.contains('hide'))return;
@@ -7258,12 +7297,16 @@ function die(){
 
 function setPaused(v){
   if(v&&!paused)buildPauseSaves();
+  if(!v)$('#pauseWhy').textContent='';
   paused=v;
   $('#pause').classList.toggle('hide',!v&&!CON.open?true:!v);
   if(v)conSync();
   if(!v)last=performance.now();
 }
-$('#resume').addEventListener('click',grabPointer);
+$('#resume').addEventListener('click',function(){
+  // unpause first: waiting on pointerlockchange to do it leaves a refused lock stuck paused
+  setPaused(false); grabPointer();
+});
 function resetWorld(){
   var i;
   for(i=ZS.length-1;i>=0;i--){var o=ZS[i].obj;if(o.parent)o.parent.remove(o);}
@@ -7309,6 +7352,7 @@ function launch(mapId,save){
   for(i=0;i<MAPOPT.length;i++)if(typeof MOPT[MAPOPT[i].id]!=='number')MOPT[MAPOPT[i].id]=MAPOPT[i].d;
   freshState(); resetWorld();
   NET.zmap={}; NET.nid=1; NET.killBy=0; NET.pwNid=1; NET.pwGone={};
+  lockWarned=false;
   downKey=''; rosKey=''; $('#down').classList.add('hide'); $('#netros').classList.add('hide');
   $('#hud').classList.remove('coop');
   T=0; over=false; paused=false; running=true; mouseBtn={};
@@ -7344,8 +7388,10 @@ function quitToMenu(){
 }
 $('#again').addEventListener('click',function(){launch(CURMAP?CURMAP.id:'vault');});
 renderer.domElement.addEventListener('click',function(){
-  if(CON.open)return;
-  if(running&&paused&&$('#settings').classList.contains('hide'))grabPointer();
+  if(CON.open||!running||over)return;
+  if(!$('#settings').classList.contains('hide'))return;
+  // whether or not it is paused: if the mouse is not ours, a click is how we ask for it
+  if(document.pointerLockElement!==renderer.domElement)grabPointer();
 });
 /* ======================= multiplayer =======================
  * LAN co-op, relay topology. server/relay.js serves this page and passes messages between
