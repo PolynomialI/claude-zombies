@@ -417,6 +417,8 @@ button.ghost:hover{background:rgba(231,226,214,.1);transform:translateY(-2px)}
   color:var(--ash);font:inherit;font-size:14px;padding:2px 0}
 @media (max-width:720px){#con{max-height:60vh}#conhead span:last-child{display:none}}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important}}
+.deadBtns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+#deadQuit{background:transparent;border:1px solid currentColor;opacity:.8}
 </style>
 </head>
 <body>
@@ -586,7 +588,7 @@ button.ghost:hover{background:rgba(231,226,214,.1);transform:translateY(-2px)}
       <div><b id="dScore">0</b><span>SCORE</span></div>
     </div>
     <p class="tag" id="dNote"></p>
-    <button id="again">GO AGAIN</button>
+    <div class="deadBtns"><button id="again">GO AGAIN</button><button id="deadQuit" class="ghost">QUIT TO MENU</button></div>
   </div>
 </div>
 
@@ -623,7 +625,7 @@ var T=0;
    thing I am playing actually the build with the fix in it" has a two-second answer: a relay
    serves game.html out of whatever repo it was deployed from, which can lag behind. Bump it
    with the version in package.json. */
-var CZ_VER='6.4.0';
+var CZ_VER='6.6.0';
 
 /* ======================= audio ======================= */
 var AU={ctx:null,master:null,noise:null,lastGroan:0,
@@ -714,8 +716,8 @@ die:function(){this.tone(220,38,1.7,'sawtooth',.26);}
 /* ======================= config ======================= */
 var GUNS={
 c9:{name:'C-9 Sidearm',dmg:90,hs:2.5,mag:12,res:120,rpm:450,auto:false,rl:1.45,spread:.006,pel:1,range:80,kick:1.05,ammo:250,mdl:'pistol',snd:'pistol'},
-ripsaw:{name:'Ripsaw SMG',dmg:95,hs:2.2,mag:40,res:280,rpm:900,auto:true,rl:1.9,spread:.017,pel:1,range:62,kick:.5,price:1200,ammo:600,mdl:'smg',snd:'smg'},
-gauge:{name:'Trench Gauge',dmg:104,hs:1.4,mag:8,res:72,rpm:125,auto:false,rl:2.5,pump:true,spread:.052,pel:10,range:30,kick:3,price:1500,ammo:750,mdl:'shotgun',snd:'shotgun'},
+ripsaw:{name:'Ripsaw SMG',dmg:95,hs:2.2,mag:40,res:280,rpm:900,auto:true,rl:1.9,spread:.017,pel:1,range:42,fall:[10,30,.4],kick:.8,price:1200,ammo:600,mdl:'smg',snd:'smg'},
+gauge:{name:'Trench Gauge',dmg:210,hs:1.4,mag:8,res:72,rpm:125,auto:false,rl:2.5,pump:true,spread:.075,pel:12,range:20,fall:[5,16,.3],kick:4.4,price:1500,ammo:750,mdl:'shotgun',snd:'shotgun'},
 latch:{name:'Latch AR',dmg:165,hs:2.4,mag:32,res:256,rpm:660,auto:true,rl:2.2,spread:.011,pel:1,range:95,kick:.95,price:1800,ammo:900,mdl:'rifle',snd:'rifle'},
 brack:{name:'Brack Carbine',dmg:148,hs:2.6,mag:45,res:315,rpm:780,auto:true,rl:2.1,spread:.013,pel:1,range:88,kick:.8,price:1900,ammo:950,mdl:'carbine',snd:'rifle'},
 kestrel:{name:'Kestrel DMR',dmg:520,hs:3,mag:10,res:80,rpm:190,auto:false,rl:2.5,spread:.002,pel:1,pierce:3,range:140,kick:2.6,price:2200,ammo:1100,mdl:'dmr',snd:'dmr'},
@@ -723,10 +725,18 @@ steel:{name:'Steelcore LMG',dmg:210,hs:2,mag:125,res:375,rpm:720,auto:true,rl:4.
 vireo:{name:'Vireo Burst',dmg:230,hs:2.6,mag:36,res:288,rpm:900,burst:3,burstGap:.28,auto:true,rl:2.1,spread:.009,pel:1,range:95,kick:1,ammo:950,box:true,mdl:'burst',snd:'rifle'},
 ray:{name:'Anomaly Ray',dmg:1400,hs:1,mag:20,res:180,rpm:170,auto:false,rl:2.5,spread:.004,pel:1,splash:4,pierce:99,range:75,kick:1.9,ammo:1500,box:true,mdl:'ray',snd:'ray'},
 hexa:{name:'Hexa Launcher',dmg:820,hs:1,mag:6,res:48,rpm:95,auto:false,rl:3.1,spread:.004,pel:1,splash:4.6,pierce:99,range:70,kick:3.2,price:2400,ammo:1400,mdl:'launcher',snd:'launch'},
-sable:{name:'Sable Auto',dmg:52,hs:1.35,mag:10,res:80,rpm:240,auto:true,rl:2.9,spread:.05,pel:8,range:26,kick:2.2,price:2600,ammo:1200,mdl:'autoshot',snd:'shotgun'},
+sable:{name:'Sable Auto',dmg:110,hs:1.35,mag:10,res:80,rpm:240,auto:true,rl:2.9,spread:.068,pel:9,range:18,fall:[4,14,.3],kick:3.2,price:2600,ammo:1200,mdl:'autoshot',snd:'shotgun'},
+axe:{name:'Woodsman Axe',melee:true,dmg:900,hs:1.6,mag:1,res:0,rpm:75,auto:true,rl:.1,spread:0,pel:1,range:3.4,arc:.55,cleave:3,kick:2.2,ammo:0,box:true,mdl:'axe',snd:'axe'},
+sickle:{name:'Reaper Sickle',melee:true,dmg:520,hs:1.4,mag:1,res:0,rpm:130,auto:true,rl:.1,spread:0,pel:1,range:3,arc:.2,cleave:5,kick:1.2,ammo:0,box:true,mdl:'sickle',snd:'axe'},
+pike:{name:'Boarding Pike',melee:true,dmg:700,hs:2,mag:1,res:0,rpm:95,auto:true,rl:.1,spread:0,pel:1,range:4.6,arc:.9,cleave:6,kick:1.6,ammo:0,box:true,mdl:'pike',snd:'axe'},
+zapp:{name:'Zappatron',dmg:620,hs:1.2,mag:24,res:192,rpm:240,auto:true,rl:2.6,spread:.004,pel:1,chain:4,range:60,kick:1.4,ammo:1500,box:true,maps:['hotel','church'],mdl:'zap',snd:'ray'},
+moss:{name:'Moss Mortar',dmg:260,hs:1,mag:4,res:32,rpm:80,auto:false,rl:3,spread:.004,pel:1,splash:5.2,freeze:4.5,pierce:99,range:60,kick:3,ammo:1300,box:true,maps:['garden'],mdl:'launcher',snd:'launch'},
 dmachine:{name:'Death Machine',dmg:260,hs:1.6,mag:999,res:999,rpm:1150,auto:true,rl:.1,spread:.026,pel:1,pierce:1,range:90,kick:.7,temp:true,mdl:'lmg',snd:'lmg'}
 };
-var BOXPOOL=['ripsaw','gauge','latch','brack','kestrel','steel','steel','vireo','vireo','sable','hexa','ray'];
+var BOXPOOL0=['ripsaw','gauge','latch','brack','kestrel','steel','steel','vireo','vireo','sable','hexa','ray','axe','sickle','pike','zapp','zapp','moss','moss'];
+var BOXPOOL=BOXPOOL0.slice();
+// the box only offers a map's own specials on that map
+function boxPoolFor(id){BOXPOOL=BOXPOOL0.filter(function(g){var m=GUNS[g].maps;return !m||m.indexOf(id)>=0;});}
 /* No zombie may appear closer than this, whether spawned by the round or relocated by
    the stuck watchdog. 7m reads as spawning on top of you in a corridor or a small room. */
 var SPAWN_MIN=11;
@@ -748,7 +758,13 @@ runner:{name:'Runner',hp:.68,spd:1.85,dmg:26,scale:.96,minRound:4,weight:34,skin
 crawler:{name:'Crawler',hp:.5,spd:1.25,dmg:22,scale:1,minRound:6,weight:26,skin:[0x6c7a58,0x77755a],eye:0x8fbf3f,reach:1.35,cd:1.5,low:true},
 brute:{name:'Brute',hp:4.2,spd:.72,dmg:62,scale:1.42,minRound:8,weight:18,skin:[0x5d6b4c,0x66614a],eye:0xff7a2e,reach:1.9,cd:2.1,armor:.55},
 screamer:{name:'Screamer',hp:.55,spd:1.5,dmg:24,scale:.98,minRound:5,weight:22,skin:[0xb8b49a,0xa8a288],eye:0xffd24a,reach:1.4,cd:1.5,shriek:true,gaunt:true},
-bloater:{name:'Bloater',hp:2.6,spd:.62,dmg:48,scale:1.18,minRound:7,weight:20,skin:[0x6f8a4a,0x7d8f56],eye:0x9fd13f,reach:1.6,cd:2,burst:true,swollen:true}
+bloater:{name:'Bloater',hp:2.6,spd:.62,dmg:48,scale:1.18,minRound:7,weight:20,skin:[0x6f8a4a,0x7d8f56],eye:0x9fd13f,reach:1.6,cd:2,burst:true,swollen:true},
+/* Map-only types: 'maps' lists where they may be rolled at all. */
+mossy:{name:'Mossback',hp:3.2,spd:.6,dmg:44,scale:1.34,minRound:2,weight:30,skin:[0x4f6b34,0x5a7a3a,0x46602e],eye:0xc4ec5a,reach:1.8,cd:2,moss:true,maps:['garden']},
+hound:{name:'Rot Hound',hp:.42,spd:2.35,dmg:18,scale:.92,minRound:3,weight:24,skin:[0x5a4a3a,0x4a3e32,0x3e342a],eye:0xff4020,reach:1.35,cd:.9,dog:true,maps:['garden']},
+bombie:{name:'Bombie',hp:.9,spd:1.3,dmg:0,scale:1.05,minRound:3,weight:20,skin:[0x8a6a52,0x7a5a44],eye:0xff3010,reach:2.1,cd:99,bomb:true,swollen:true,maps:['hotel','church']},
+blaze:{name:'Blaze',hp:1.3,spd:.85,dmg:28,scale:1,minRound:4,weight:18,skin:[0x9a4a24,0xa8562a],eye:0xffb020,reach:1.4,cd:1.6,blaze:true,maps:['hotel','church']},
+shade:{name:'Shade',hp:.6,spd:1.75,dmg:26,scale:.98,minRound:6,weight:14,skin:[0x303844,0x2a303a],eye:0x9fe0ff,reach:1.4,cd:1.4,shade:true,gaunt:true,maps:['hotel','church']}
 };
 
 var POWER_DEFS=[
@@ -831,13 +847,13 @@ var OPTDEF=[
   {id:'reload',t:'bind',n:'Reload'},{id:'melee',t:'bind',n:'Knife'},
   {id:'use',t:'bind',n:'Buy / take'},{id:'last',t:'bind',n:'Last weapon'},
   {id:'slot1',t:'bind',n:'Weapon slot 1'},{id:'slot2',t:'bind',n:'Weapon slot 2'},
-  {id:'slot3',t:'bind',n:'Weapon slot 3'},
+  {id:'slot3',t:'bind',n:'Weapon slot 3'},{id:'crouch',t:'bind',n:'Crouch'},
   {id:'inspect',t:'bind',n:'Inspect knife'},{id:'shadows',t:'bind',n:'Toggle shadows'}
 ]}
 ];
 var BINDDEF={forward:'KeyW',back:'KeyS',left:'KeyA',right:'KeyD',sprint:'ShiftLeft',jump:'Space',
   fire:'Mouse0',ads:'Mouse2',reload:'KeyR',melee:'KeyV',use:'KeyF',last:'KeyQ',
-  slot1:'Digit1',slot2:'Digit2',slot3:'Digit3',inspect:'KeyB',shadows:'KeyG'};
+  slot1:'Digit1',slot2:'Digit2',slot3:'Digit3',inspect:'KeyB',shadows:'KeyG',crouch:'KeyC'};
 /* Per-map run settings, chosen on the menu before dropping in. Data-driven like OPTDEF:
    adding one is a row here plus wherever it is read. Stored per map id under cz_mapopt. */
 /* The row name and its choices, and nothing else: these had a line of explanation each and
@@ -1419,13 +1435,33 @@ rags:function(g,h,S){
   speckle(g,S,900,['#3f3a32','#a49a8a'],2,.38);
 }
 };
+/* Every surface texture tiles on all four sides. Painted straight, a texture's left edge has
+   nothing to do with its right edge, and a long wall shows a hard seam every repeat — the
+   "tiled bricks" look. Cross-fading with a copy shifted by half a tile hides that: the copy's
+   own seams sit in the middle, where the original shows, and its middle — which is continuous
+   across the wrap — is what shows at the edges. */
+function seamless(g,S){
+  var src=g.getImageData(0,0,S,S),out=g.createImageData(S,S),a=src.data,o=out.data,H=S>>1,F=S*.28;
+  if(!a||a.length<S*S*4)return;
+  var wx=new Float32Array(S);
+  for(var i=0;i<S;i++){var e=Math.min(i,S-1-i)/F;e=e>1?1:e;wx[i]=e*e*(3-2*e);}
+  for(var y=0;y<S;y++){
+    var ys=(y+H)%S;
+    for(var x=0;x<S;x++){
+      var m=wx[x]*wx[y],p=(y*S+x)*4,q=(ys*S+(x+H)%S)*4;
+      o[p]=a[p]*m+a[q]*(1-m); o[p+1]=a[p+1]*m+a[q+1]*(1-m);
+      o[p+2]=a[p+2]*m+a[q+2]*(1-m); o[p+3]=255;
+    }
+  }
+  g.putImageData(out,0,0);
+}
 var TX={};
 (function buildTextures(){
   var S=256;
   for(var k in TXB){
     var cc=cv(S),g=cc.getContext('2d'),hc=cv(S),h=hc.getContext('2d');
     h.fillStyle='#808080'; h.fillRect(0,0,S,S);
-    TXB[k](g,h,S);
+    TXB[k](g,h,S); seamless(g,S); seamless(h,S);
     var map=new THREE.CanvasTexture(cc),bump=new THREE.CanvasTexture(hc);
     map.wrapS=map.wrapT=bump.wrapS=bump.wrapT=THREE.RepeatWrapping;
     map.encoding=THREE.sRGBEncoding;
@@ -1700,8 +1736,12 @@ var RACKLED=[],SCREENS=[];
 var MAPG=new THREE.Group(); world.add(MAPG);
 var MAPD=new THREE.Group(); deco.add(MAPD);
 function box(x,y,z,w,h,d,mat,solid,tag){
-  var m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);
-  m.position.set(x,y+h/2,z); m.castShadow=true; m.receiveShadow=true; MAPG.add(m);
+  /* On a map with storeys a wall is 0.55 taller than the storey, so that its top is a kerb
+     nobody steps over from the floor above. That kerb is for the collider only: drawn, it
+     stuck up through the upper floor as a strip of wall wherever nothing stood on top of it. */
+  var vh=(MULTI&&Math.abs(h-(WALL_H+.55))<.001)?WALL_H:h;
+  var m=new THREE.Mesh(new THREE.BoxGeometry(w,vh,d),mat);
+  m.position.set(x,y+vh/2,z); m.castShadow=true; m.receiveShadow=true; MAPG.add(m);
   if(solid!==false){
     var c={x0:x-w/2,x1:x+w/2,y0:y,y1:y+h,z0:z-d/2,z1:z+d/2,tag:tag||null};
     COL.push(c); m.userData.col=c;
@@ -1913,6 +1953,14 @@ var prizeLight=new THREE.PointLight(0xe0b256,0,7); prizeGrp.add(prizeLight);
 /* ---- shared map fittings: doors, props, roofs, signs, perk machines ----
    Module scope on purpose: every map builder uses them, and they all register into
    the per-map arrays that loadMap() empties. */
+/* Doors sink into the floor. Squashing the slab from the top while lowering its centre keeps
+   the bottom edge on the floor, so a door on an upper storey never pokes through the ceiling
+   of the room beneath it on the way down. */
+function doorSink(dr,t){
+  dr.sink=t; var e=t*t*(3-2*t);
+  dr.mesh.scale.y=Math.max(.001,1-e); dr.mesh.position.y=dr.y0-2.4*e;
+  dr.mesh.visible=t<1;
+}
 function makeDoor(id,x,z,w,d,price,zoneKey,rotSigns,corrKey,y){
   y=y||0;
   var m=box(x,y,z,w,4.8,d,M.rust,true,'door:'+id);
@@ -2155,9 +2203,22 @@ function addSign(x,y,z,ry,title,sub,col,sub2,w,h){
     new THREE.MeshBasicMaterial({map:signTex(title,sub,col,sub2),transparent:true,side:THREE.DoubleSide})));
   m.position.set(x,y,z); m.rotation.y=ry; MAPG.add(m); return m;
 }
+/* A wall buy is the gun itself on a chalk-outline plate, lit a little so it reads from across
+   the room, with a small price plate under it rather than a text board. */
 function wallBuy(id,x,y,z,ry,zone){
   var g=GUNS[id];
-  addSign(x,y,z,ry,g.name.toUpperCase(),String(g.price),'#e0b256');
+  var grp=new THREE.Group(); grp.position.set(x,y,z); grp.rotation.y=ry; MAPG.add(grp);
+  var back=noRay(new THREE.Mesh(new THREE.PlaneGeometry(1.9,.9),
+    new THREE.MeshBasicMaterial({color:0xe0b256,transparent:true,opacity:.14,depthWrite:false,side:THREE.DoubleSide})));
+  back.position.z=.01; grp.add(back);
+  var gm2=gunCopy(g.mdl); gm2.scale.setScalar(2.6); gm2.rotation.set(0,Math.PI/2,0); gm2.position.set(0,.05,.12);
+  gm2.traverse(function(o){
+    if(!o.isMesh)return; o.raycast=function(){}; o.castShadow=false;
+    o.material=o.material.clone();
+    if(o.material.emissive)o.material.emissive.setHex(0x6a4a14);
+  });
+  grp.add(gm2);
+  addSign(x+Math.sin(ry)*.02,y-.62,z+Math.cos(ry)*.02,ry,g.name.toUpperCase(),String(g.price),'#e0b256',null,1.2,.4);
   // the sign hangs at 2.2 above whatever floor it is on, so the stand-here point follows it
   BUYS.push({kind:'gun',gun:id,pos:new V3(x,y-1,z),price:g.price,zone:zone});
 }
@@ -2391,8 +2452,131 @@ corrD:{name:'The Allotment',x0:12.2,x1:15.8,z0:9.6,z1:16.4,open:false},
 plots:{name:'The Allotment',x0:4,x1:28,z0:16,z1:40,open:false},
 corrE:{name:'The Allotment',x0:-0.4,x1:4.4,z0:26.2,z1:29.8,open:false},
 corrF:{name:'The Cold Frames',x0:27.6,x1:32.4,z0:27.2,z1:30.8,open:false},
-frames:{name:'The Cold Frames',x0:32,x1:48,z0:20,z1:38,open:false}
+frames:{name:'The Cold Frames',x0:32,x1:48,z0:20,z1:38,open:false},
+corrG:{name:'The Barnyard',x0:-30.4,x1:-23.6,z0:-30,z1:-26,open:false},
+barn:{name:'The Barnyard',x0:-64,x1:-30,z0:-36,z1:4,open:false}
 };
+
+/* ---- the barnyard: the garden's big open room, west of the pump house ----
+   A walled yard in front of the face of a red barn — the barn itself is a facade, its doors
+   chained shut — with hay, troughs, a cart and a windpump to fight round. The hounds come
+   from here. The lane from door G runs straight in along z=-28; nothing stands in it. */
+var BARN_RED=null,BARN_TRIM=null,HAY=null;
+function hay(x,z,ry,stack){
+  var n=stack||1;
+  for(var i=0;i<n;i++){
+    var b=box(x,i*.72,z,1.5,.72,.95,HAY,i===0); b.rotation.y=ry||0;
+    if(i)b.position.x+=rnd(-.08,.08);
+  }
+  // a stack of two is cover you can shoot over but not stand on top of for long
+  if(n>1)COL.push({x0:x-.8,x1:x+.8,y0:0,y1:n*.72,z0:z-.55,z1:z+.55,tag:null});
+}
+function trough(x,z,ry){
+  var g=new THREE.Group(); g.position.set(x,0,z); g.rotation.y=ry||0; MAPG.add(g);
+  var b=new THREE.Mesh(new THREE.BoxGeometry(2.6,.7,.8),M.bark); b.position.y=.35; b.castShadow=true; g.add(b);
+  var w=new THREE.Mesh(new THREE.BoxGeometry(2.4,.05,.6),new THREE.MeshLambertMaterial({color:0x3f5a52}));
+  w.position.y=.62; g.add(w);
+  var sx=Math.abs(Math.cos(ry||0))*1.3+Math.abs(Math.sin(ry||0))*.4,sz=Math.abs(Math.sin(ry||0))*1.3+Math.abs(Math.cos(ry||0))*.4;
+  COL.push({x0:x-sx,x1:x+sx,y0:0,y1:.7,z0:z-sz,z1:z+sz,tag:null});
+}
+function cart(x,z,ry){
+  var g=new THREE.Group(); g.position.set(x,0,z); g.rotation.y=ry||0; MAPG.add(g);
+  var bed=new THREE.Mesh(new THREE.BoxGeometry(1.8,.5,3.2),M.bark); bed.position.y=1; bed.castShadow=true; g.add(bed);
+  var hayTop=new THREE.Mesh(new THREE.BoxGeometry(1.6,.5,2.8),HAY); hayTop.position.y=1.45; hayTop.rotation.x=.04; g.add(hayTop);
+  for(var i=0;i<2;i++){
+    var wh=new THREE.Mesh(new THREE.CylinderGeometry(.62,.62,.12,12),M.beam);
+    wh.rotation.z=Math.PI/2; wh.position.set(i?1:-1,.62,.3); g.add(wh);
+  }
+  var shaft=new THREE.Mesh(new THREE.BoxGeometry(.1,.1,2.4),M.beam); shaft.position.set(.5,.7,2.6); shaft.rotation.x=.25; g.add(shaft);
+  var shaft2=shaft.clone(); shaft2.position.x=-.5; g.add(shaft2);
+  var c=Math.abs(Math.cos(ry||0)),sn=Math.abs(Math.sin(ry||0));
+  COL.push({x0:x-(c*1+sn*1.7),x1:x+(c*1+sn*1.7),y0:0,y1:1.7,z0:z-(sn*1+c*1.7),z1:z+(sn*1+c*1.7),tag:null});
+}
+function windpump(x,z){
+  var g=new THREE.Group(); g.position.set(x,0,z); MAPG.add(g);
+  for(var i=0;i<4;i++){
+    var leg=new THREE.Mesh(new THREE.BoxGeometry(.12,7.4,.12),M.metal);
+    leg.position.set(i%2?.6:-.6,3.6,i<2?.6:-.6); leg.rotation.set(i<2?-.08:.08,0,i%2?.08:-.08); g.add(leg);
+  }
+  var head=new THREE.Group(); head.position.set(0,7.4,0); g.add(head);
+  for(var b=0;b<8;b++){
+    var bl=new THREE.Mesh(new THREE.BoxGeometry(.08,1.5,.35),M.metal);
+    bl.position.set(0,.75,0); var arm=new THREE.Group(); arm.rotation.x=b*Math.PI/4; arm.add(bl); head.add(arm);
+  }
+  var vane=new THREE.Mesh(new THREE.BoxGeometry(.06,.8,1.4),M.metal); vane.position.set(-1.2,0,0); vane.rotation.y=Math.PI/2; head.add(vane);
+  FLICK.push({spin:head});
+  COL.push({x0:x-.75,x1:x+.75,y0:0,y1:7.4,z0:z-.75,z1:z+.75,tag:null});
+}
+function barnFacade(x,z0,z1){
+  // the east face of the barn at x, from z0 to z1: red boards, white trim, a gambrel top
+  var zc=(z0+z1)/2,w=z1-z0,H=6.2;
+  box(x-.3,0,zc,.6,H,w,BARN_RED);
+  // gambrel: two steep lower pitches, two shallow upper ones, as stepped slabs on the face
+  var g=new THREE.Group(); g.position.set(x-.3,H,zc); MAPG.add(g);
+  var low=[[w/2-1.6,2.2,1.05],[-(w/2-1.6),2.2,-1.05]];
+  for(var i=0;i<2;i++){
+    var p=new THREE.Mesh(new THREE.BoxGeometry(.6,3.4,w*.36),BARN_RED);
+    p.position.set(0,1.3,(i?-1:1)*(w/2-w*.18)); p.rotation.x=(i?-1:1)*.55; g.add(p);
+  }
+  var top=new THREE.Mesh(new THREE.BoxGeometry(.6,2.6,w*.52),BARN_RED); top.position.set(0,3.2,0); g.add(top);
+  var fill=new THREE.Mesh(new THREE.BoxGeometry(.5,3.6,w*.66),BARN_RED); fill.position.set(.05,1.8,0); g.add(fill);
+  var cap=new THREE.Mesh(new THREE.BoxGeometry(1.4,.25,w*.56),M.shingle); cap.position.set(-.4,4.5,0); g.add(cap);
+  // trim: corner boards, the eave line and the famous white X doors
+  var trimAt=function(dx,y,dz,a,b,c,r){var m=new THREE.Mesh(new THREE.BoxGeometry(a,b,c),BARN_TRIM);m.position.set(x+dx,y,dz);if(r)m.rotation.x=r;MAPG.add(m);return m;};
+  trimAt(.05,H,zc,.12,.22,w);
+  trimAt(.05,H/2,z0+.15,.12,H,.3); trimAt(.05,H/2,z1-.15,.12,H,.3);
+  var dw=6,dh=4.6;
+  box(x+.1,0,zc,.3,dh,dw,M.beam,false);
+  for(var s2=-1;s2<=1;s2+=2){
+    var cz=zc+s2*dw/4;
+    trimAt(.3,dh/2,cz,.1,dh,.18); trimAt(.3,dh-.1,cz,.1,.18,dw/2); trimAt(.3,.1,cz,.1,.18,dw/2);
+    var len=Math.sqrt(dh*dh+dw*dw/4);
+    trimAt(.3,dh/2,cz,.1,len,.16,Math.atan2(dw/2,dh)); trimAt(.3,dh/2,cz,.1,len,.16,-Math.atan2(dw/2,dh));
+  }
+  // chain across the doors, and the hay loft above them with hay spilling out
+  trimAt(.36,2.3,zc,.06,.08,dw*.6).material=M.metal;
+  box(x+.1,H+.6,zc,.3,1.8,2.4,M.dark,false);
+  var hl=new THREE.Mesh(new THREE.BoxGeometry(.6,.5,2),HAY); hl.position.set(x+.25,H+.35,zc); MAPG.add(hl);
+  trimAt(.05,H+1.5,zc,.12,.18,2.6); trimAt(.05,H+.6,zc-1.25,.12,1.9,.16); trimAt(.05,H+.6,zc+1.25,.12,1.9,.16);
+  lamp(x+1.2,zc,5.2,0xffd49a,20,1.2);
+}
+function buildBarnyard(){
+  if(!BARN_RED){
+    BARN_RED=lam('siding',3,2,0x9a3526); BARN_TRIM=new THREE.MeshLambertMaterial({color:0xe9e2d2});
+    HAY=lam('rags',1,1,0xd8b860);
+  }
+  floorPatch(-64,-30,-36,4,'loam',0xb89e7c);
+  floorPatch(-58,-36,-24,-8,'turf',0xc8c890);
+  // the lane in from door G
+  box(-27,0,-30.4,6.8,WALL_H,.8,M.brick); box(-27,0,-25.6,6.8,WALL_H,.8,M.brick);
+  roof(-30.4,-23.6,-30.8,-25.2,M.plank,0);
+  // the yard walls: brick, windows for the dead to climb through on three sides
+  wallRun('z',-30,-36.31,4.31,[{a:-30,b:-26,plain:true},{a:-12,b:-9}],-1,'barn',M.brick);
+  wallRun('x',4,-64.31,-29.69,[{a:-52,b:-49},{a:-40,b:-37}],-1,'barn',M.brick);
+  wallRun('x',-36,-64.31,-29.69,[{a:-56,b:-53},{a:-44,b:-41}],1,'barn',M.brick);
+  wallRun('z',-64,-36.31,4.31,[{a:-6,b:-3}],1,'barn',M.brick);
+  barnFacade(-60,-30,-4);
+  // hay: stacked cover down the middle, loose bales by the barn
+  hay(-50,-20,0,2); hay(-50,-14,.2,1); hay(-44,-8,1.4,2); hay(-56,-2,0,1); hay(-55.2,-33,0,2);
+  hay(-40,-33,.4,1); hay(-37,-16,Math.PI/2,2); hay(-46,-24,0,1); hay(-57.5,-26.5,.3,1);
+  trough(-42,-4,0); trough(-54,-12,Math.PI/2);
+  cart(-38,-2,.6);
+  windpump(-35,-10);
+  crate(-33,-35,1.3,1.1); crate(-34.4,-34.6,1.1,.8,.4);
+  barrel(-62.4,2.2,false,M.rust); barrel(-62.4,-34.4,true);
+  // split-rail paddock fence across the south of the yard, open in the middle
+  for(var fz=0;fz<2;fz++){
+    var rail=new THREE.Mesh(new THREE.BoxGeometry(12,.12,.12),M.beam); rail.position.set(-57,.55+fz*.5,-30); MAPG.add(rail);
+    var rail2=rail.clone(); rail2.position.x=-39; MAPG.add(rail2);
+  }
+  for(var fp=0;fp<5;fp++){box(-63+fp*3,0,-30,.16,1.2,.16,M.beam);box(-45+fp*3,0,-30,.16,1.2,.16,M.beam);}
+  COL.push({x0:-63,x1:-51,y0:0,y1:1.2,z0:-30.1,z1:-29.9,tag:null});
+  COL.push({x0:-45,x1:-33,y0:0,y1:1.2,z0:-30.1,z1:-29.9,tag:null});
+  postlamp(-46,-28,0xffd49a); postlamp(-36,0,0xffd49a); postlamp(-58,-34,0xffd49a);
+  wallBuy('gauge',-30.37,2.2,-6,-Math.PI/2,'barn');
+  wallBuy('brack',-63.63,2.2,-12,Math.PI/2,'barn');
+  makeDoor('G',-27,-28,.55,3.7,1500,'barn',false,'corrG');
+}
 
 /* ---- map two: The Garden ---- */
 function buildGarden(){
@@ -2453,12 +2637,12 @@ function buildGarden(){
   /* ---- the pump house: brick, machinery, the generator ---- */
   wallRun('x',-18,-24.31,-7.69,[{a:-16.5,b:-11.5,plain:true},{a:-23,b:-20.5}],1,'pump',M.brick);
   wallRun('x',-34,-24.31,-7.69,[{a:-14,b:-11}],-1,'pump',M.brick);
-  wallRun('z',-24,-34.31,-17.69,[{a:-30,b:-27}],1,'pump',M.brick);
+  wallRun('z',-24,-34.31,-17.69,[{a:-30,b:-26,plain:true}],1,'pump',M.brick);
   wallRun('z',-8,-34.31,-17.69,[{a:-32,b:-29}],-1,'pump',M.brick);
   box(-16.1,0,-13,.8,WALL_H,11,M.brick); box(-11.9,0,-13,.8,WALL_H,11,M.brick);
   roof(-24.4,-7.6,-34.4,-17.6,M.brick,4,'x');
   roof(-16.6,-11.4,-18.4,-7.6,M.brick,0);
-  shelf(-22,-27,Math.PI/2,5);
+  shelf(-22,-23.4,Math.PI/2,2.8);
   cabinet(-9.6,-22,-Math.PI/2); cabinet(-9.6,-25,-Math.PI/2);
   barrel(-22.6,-32.6,false,M.metal); barrel(-21,-32.6,false,M.rust);
   crate(-12,-32.4,1.5,1.15); crate(-13.4,-32.4,1.3,.7,.3);
@@ -2512,6 +2696,7 @@ function buildGarden(){
   postlamp(38,29,0xffe0b0); postlamp(45,36,0xffe0b0);
 
   /* ---- doors ---- */
+  buildBarnyard();
   makeDoor('A',0,0,.55,3.7,1000,'glass',false,'corrA');
   makeDoor('B',-14,-13,3.7,.55,1250,'pump',true,'corrB');
   makeDoor('C',-12,12,3.7,.55,1500,'orchard',true,'corrC');
@@ -3113,10 +3298,10 @@ function buildHotel(){
      The slab stops where the flight still has headroom under it, so the whole climb is open
      to the storey above, and picks up again past the head of the stair. */
   floorSlab(-32,-21,-4,14,5,M.plank);
-  floorSlab(-17.4,-8,-4,14,5,M.plank);
-  floorSlab(-21,-17.4,-4,6.2,5,M.plank);
-  floorSlab(-21,-17.4,12.8,14,5,M.plank);
-  railing(-21,-17.4,6.2,12.8,5,'ens');
+  floorSlab(-16.4,-8,-4,14,5,M.plank);
+  floorSlab(-21,-16.4,-4,6.2,5,M.plank);
+  floorSlab(-21,-16.4,12.8,14,5,M.plank);
+  railing(-21,-16.4,6.2,12.8,5,'ens');
   wallRun('z',-32,-4.31,14.31,[{a:-2,b:1},{a:9,b:12}],1,'apartment',M.timberC);
   wallRun('x',14,-32.31,-7.69,[{a:-31,b:-28}],-1,'apartment',M.timberC);
   wallRun('x',-4,-32.31,-7.69,[{a:-31,b:-28},{a:-12,b:-9}],1,'apartment',M.timberC);
@@ -3187,11 +3372,11 @@ function buildHotel(){
   floorSlab(8,12,4,16,5,M.plank);
   floorSlab(12,20,4,6.2,5,M.plank);
   floorSlab(12,20,12.8,16,5,M.plank);
-  floorSlab(12,16.4,6.2,12.8,5,M.plank);
+  floorSlab(12,15.4,6.2,12.8,5,M.plank);
   floorSlab(19,20,6.2,12.8,5,M.plank,false);
   floorSlab(20,22,4,16,5,M.plank);
-  railing(16.4,19,6.2,12.8,5,'w');
-  railing(16.4,18.6,6.2,12.8,5,'ns');
+  railing(15.4,19,6.2,12.8,5,'w');
+  railing(15.4,18.6,6.2,12.8,5,'ns');
   floorSlab(8,30,-2,4,5,M.plank);
   floorSlab(20,30,-14,-2,5,M.plank);
   // gal1, the landing at the top of the office stair
@@ -3486,7 +3671,7 @@ duct(13,23.4,17,'x');
 pipes(13,4.1,17.2,17,0);
 
 /* ---- server bank ---- */
-servers(31,18.5,0); servers(32.9,18.5,0); servers(34.8,18.5,0); servers(36.7,18.5,0);
+servers(28.8,18.5,0); servers(31.4,18.5,0); servers(35.8,18.5,0); servers(38.4,18.5,0);
 consoleBank(33,15.6,0,3.4);
 tube(30,22,4.4); tube(39,20,4.4);
 duct(34,24.6,15,'x');
@@ -3826,6 +4011,56 @@ function buildNav(){
   NAVDROP=cur>1?1:0;
   navAlloc();
 }
+/* ---- spawn points that are not inside the furniture ----
+ * A window's spawn point is set 1.7 m into the room, and the room is then dressed with props --
+ * and a crate or a cabinet dropped in front of a window swallows the point whole. The zombie
+ * then appears inside the box, cannot move a centimetre, and the stuck watchdog teleports it
+ * elsewhere: which is what "stuck behind the bars" was. 23 of 102 spawns across the three maps
+ * did it, the vault's starting room among them. tools/spawncheck.js is what found them.
+ *
+ * So after a map is built, any spawn whose footprint is inside a collider is walked outward in
+ * rings until it is clear, still inside its own room, and can see a nav node -- the last so it
+ * cannot be moved into some other sealed pocket instead. The clearance is a brute's, the widest
+ * thing that spawns.
+ */
+function spawnBlocked(p,r){
+  for(var c=0;c<COL.length;c++){
+    var q=COL[c];
+    if(q.y0>p.y+1.8||q.y1<=p.y+Z_STEP)continue;
+    if(p.x+r>q.x0&&p.x-r<q.x1&&p.z+r>q.z0&&p.z-r<q.z1)return true;
+  }
+  return false;
+}
+var SPAWN_CLEAR=.58;
+/* A spawn is usable when a zombie fits there and can see a nav node close by: without that
+   line it walks straight into whatever hides the node and never gets into the room. */
+function spawnOk(q){
+  if(spawnBlocked(q,SPAWN_CLEAR))return false;
+  var nn=nearestNode(q,false);
+  if(nn<0||Math.abs(NAV[nn].p.y-q.y)>1||NAV[nn].p.distanceTo(q)>=3)return false;
+  // the line has to be a body wide: a thin one lets the first step scrape a corner
+  var n=NAV[nn].p,dx=n.x-q.x,dz=n.z-q.z,l=Math.sqrt(dx*dx+dz*dz)||1,ox=-dz/l*.4,oz=dx/l*.4;
+  return los(q,n)&&los(new V3(q.x+ox,q.y,q.z+oz),new V3(n.x+ox,n.y,n.z+oz))&&
+    los(new V3(q.x-ox,q.y,q.z-oz),new V3(n.x-ox,n.y,n.z-oz));
+}
+function settleSpawns(){
+  var moved=0,i;
+  for(i=0;i<SPAWNS.length;i++){
+    var sp=SPAWNS[i],Z=ZONES[sp.zone];
+    if(spawnOk(sp.pos))continue;
+    var best=null,rad,a;
+    for(rad=.35;rad<=6&&!best;rad+=.35){
+      for(a=0;a<20&&!best;a++){
+        var ang=a/20*6.2832,x=sp.pos.x+Math.cos(ang)*rad,z=sp.pos.z+Math.sin(ang)*rad;
+        if(Z&&(x<Z.x0+.45||x>Z.x1-.45||z<Z.z0+.45||z>Z.z1-.45))continue;
+        var q=new V3(x,sp.pos.y,z);
+        if(spawnOk(q))best=q;
+      }
+    }
+    if(best){sp.pos.copy(best);moved++;}
+  }
+  return moved;
+}
 function nearestNode(p,requireOpen){
   var zk=zoneAt(p.x,p.z,p.y),best=-1,bd=1e9,any=-1,ad=1e9;
   for(var i=0;i<NAV.length;i++){
@@ -3867,6 +4102,331 @@ function navPath(from,to){
   return null;
 }
 
+/* ---- map four: The Cathedral ----
+   A stone church in dark wood. You come in at the narthex, through into a long nave of pews,
+   and the nave opens without a door into the crossing: a great domed hall with a statue in
+   the middle and a raised stage at the far end. Side rooms hang off both: a sacristy and a
+   library either side of the nave, a chapel and the bell tower either side of the crossing,
+   and behind the stage the choir, where the Pack-a-Punch waits. One storey throughout; the
+   stage is a single step up. */
+var CHURCHZONES={
+narthex:{name:'The Narthex',x0:-10,x1:10,z0:38,z1:48,open:true},
+corrA:{name:'The Nave',x0:-2,x1:2,z0:33.6,z1:38.4,open:false},
+nave:{name:'The Nave',x0:-12,x1:12,z0:2,z1:34,open:false},
+crossing:{name:'The Crossing',x0:-14,x1:14,z0:-38,z1:2,open:false},
+corrB:{name:'The Sacristy',x0:-16.4,x1:-11.6,z0:20,z1:24,open:false},
+sacristy:{name:'The Sacristy',x0:-30,x1:-16,z0:14,z1:32,open:false},
+corrD:{name:'The Library',x0:11.6,x1:16.4,z0:20,z1:24,open:false},
+library:{name:'The Library',x0:16,x1:30,z0:14,z1:32,open:false},
+corrC:{name:'The Lady Chapel',x0:-18.4,x1:-13.6,z0:-15,z1:-11,open:false},
+chapel:{name:'The Lady Chapel',x0:-32,x1:-18,z0:-24,z1:-2,open:false},
+corrE:{name:'The Bell Tower',x0:13.6,x1:18.4,z0:-15,z1:-11,open:false},
+tower:{name:'The Bell Tower',x0:18,x1:32,z0:-24,z1:-2,open:false},
+corrF:{name:'The Choir',x0:-2,x1:2,z0:-42.4,z1:-37.6,open:false},
+choir:{name:'The Choir',x0:-12,x1:12,z0:-54,z1:-42,open:false}
+};
+var CH={};
+function churchMats(){
+  if(CH.wood)return;
+  CH.wood=lam('wood',2,1,0x4a3020);
+  CH.woodL=lam('wood',1,1,0x6a4a30);
+  CH.stone=lam('brickwall',9,3.4,0x9c948a);
+  CH.stoneD=lam('brickwall',9,3.4,0x7a746c);
+  CH.pale=lam('plaster',2,2,0xcfc6b4);
+  CH.gold=new THREE.MeshPhongMaterial({color:0xc8a040,shininess:80,specular:0xffe0a0,emissive:0x2a1a00});
+  CH.cloth=lam('rags',1,1,0x6a1818);
+  CH.dome=new THREE.MeshLambertMaterial({color:0x2c3a5a,side:THREE.DoubleSide});
+}
+/* a pew: seat, back and ends; low enough that the dead clamber over it and you do not */
+function pew(x,z,len,ry){
+  var g=new THREE.Group(); g.position.set(x,0,z); g.rotation.y=ry||0; MAPG.add(g);
+  var seat=new THREE.Mesh(new THREE.BoxGeometry(len,.1,.52),CH.wood); seat.position.y=.46; seat.castShadow=true; g.add(seat);
+  var back=new THREE.Mesh(new THREE.BoxGeometry(len,.62,.08),CH.wood); back.position.set(0,.84,-.26); g.add(back);
+  var rail=new THREE.Mesh(new THREE.BoxGeometry(len,.06,.14),CH.woodL); rail.position.set(0,1.16,-.26); g.add(rail);
+  for(var i=0;i<2;i++){
+    var end=new THREE.Mesh(new THREE.BoxGeometry(.1,1.15,.6),CH.wood); end.position.set((i?1:-1)*len/2,.58,-.02); g.add(end);
+  }
+  var c=Math.abs(Math.cos(ry||0)),s=Math.abs(Math.sin(ry||0));
+  COL.push({x0:x-(c*len/2+s*.32),x1:x+(c*len/2+s*.32),y0:0,y1:1.4,z0:z-(s*len/2+c*.32),z1:z+(s*len/2+c*.32),tag:null});
+}
+/* stained glass: a leaded grid of coloured panes, lit from behind, high on a wall */
+var GLASSTEX=[];
+function glassTex(i){
+  i=i%3;
+  if(GLASSTEX[i])return GLASSTEX[i];
+  var c=cv(64,128),g=c.getContext('2d');
+  var pal=[['#8a1c24','#1c3a8a','#c8a040','#2a6a3a'],['#1c3a8a','#6a1c7a','#c8a040','#b84a1c'],['#2a6a3a','#8a1c24','#1c5a8a','#d8c070']][i];
+  if(g&&g.fillRect){
+    g.fillStyle='#120e0a'; g.fillRect(0,0,64,128);
+    for(var y=0;y<8;y++)for(var x=0;x<4;x++){g.fillStyle=pal[(x*3+y*5+i)%4];g.fillRect(x*16+1.5,y*16+1.5,13,13);}
+    g.fillStyle='#e8d8a0'; if(g.beginPath){g.beginPath(); g.arc(32,40,11,0,6.3); g.fill();}
+    g.fillStyle='#120e0a'; g.fillRect(30,24,4,48); g.fillRect(20,36,24,4);
+  }
+  var t=new THREE.CanvasTexture(c); t.encoding=THREE.sRGBEncoding; GLASSTEX[i]=t; return t;
+}
+function stainedGlass(x,y,z,ry,w,h,i){
+  var m=noRay(new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({map:glassTex(i||0)})));
+  m.position.set(x,y,z); m.rotation.y=ry; MAPG.add(m);
+  var fr=noRay(new THREE.Mesh(new THREE.BoxGeometry(w+.2,h+.2,.06),CH.stoneD));
+  fr.position.set(x-Math.sin(ry)*.04,y,z-Math.cos(ry)*.04); fr.rotation.y=ry; MAPG.add(fr);
+  var ar=noRay(new THREE.Mesh(new THREE.CircleGeometry(w/2,12,0,Math.PI),new THREE.MeshBasicMaterial({map:glassTex((i||0)+1)})));
+  ar.position.set(x,y+h/2,z); ar.rotation.y=ry; MAPG.add(ar);
+}
+/* a dark timber ceiling with exposed beams */
+function woodCeil(x0,x1,z0,z1,axis,n){
+  var w=x1-x0,d=z1-z0;
+  var m=new THREE.Mesh(new THREE.BoxGeometry(w,.4,d),CH.wood); m.position.set((x0+x1)/2,WALL_H+.2,(z0+z1)/2); MAPG.add(m);
+  for(var i=1;i<n;i++){
+    var b=new THREE.Mesh(new THREE.BoxGeometry(axis==='x'?w:.34,.44,axis==='x'?.34:d),CH.woodL);
+    b.position.set(axis==='x'?(x0+x1)/2:x0+w*i/n,WALL_H-.22,axis==='x'?z0+d*i/n:(z0+z1)/2); MAPG.add(b);
+  }
+}
+function candles(x,z,y,n){
+  var wax=new THREE.MeshLambertMaterial({color:0xe8e0c8}),fl=new THREE.MeshBasicMaterial({color:0xffc060});
+  for(var i=0;i<n;i++){
+    var cx=x+rnd(-.35,.35),cz=z+rnd(-.2,.2),h=rnd(.12,.3);
+    var c=noRay(new THREE.Mesh(new THREE.CylinderGeometry(.03,.03,h,6),wax)); c.position.set(cx,y+h/2,cz); MAPG.add(c);
+    var f=noRay(new THREE.Mesh(new THREE.BoxGeometry(.025,.05,.025),fl)); f.position.set(cx,y+h+.03,cz); MAPG.add(f);
+  }
+}
+function saintStatue(x,z){
+  var g=new THREE.Group(); g.position.set(x,0,z); MAPG.add(g);
+  var ped=new THREE.Mesh(new THREE.BoxGeometry(2.8,1.4,2.8),CH.stoneD); ped.position.y=.7; ped.castShadow=true; g.add(ped);
+  var step=new THREE.Mesh(new THREE.BoxGeometry(3.6,.3,3.6),CH.stone); step.position.y=.15; g.add(step);
+  var marble=new THREE.MeshLambertMaterial({color:0xd8d2c6});
+  var robe=new THREE.Mesh(new THREE.CylinderGeometry(.42,.9,2.6,10),marble); robe.position.y=2.7; robe.castShadow=true; g.add(robe);
+  var sh=new THREE.Mesh(new THREE.SphereGeometry(.5,10,8),marble); sh.position.y=3.95; sh.scale.set(1.2,.6,.9); g.add(sh);
+  var head=new THREE.Mesh(new THREE.SphereGeometry(.3,10,8),marble); head.position.y=4.45; g.add(head);
+  var hood=new THREE.Mesh(new THREE.SphereGeometry(.36,10,8,0,6.3,0,1.9),marble); hood.position.set(0,4.52,-.04); g.add(hood);
+  for(var i=0;i<2;i++){
+    // arms raised, palms out: blessing, or warding something off
+    var arm=new THREE.Mesh(new THREE.BoxGeometry(.2,1.2,.22),marble);
+    arm.position.set((i?1:-1)*.72,4.3,.12); arm.rotation.z=(i?-1:1)*.55; g.add(arm);
+  }
+  var halo=noRay(new THREE.Mesh(new THREE.TorusGeometry(.5,.04,6,24),CH.gold)); halo.position.set(0,4.55,-.3); g.add(halo);
+  COL.push({x0:x-1.4,x1:x+1.4,y0:0,y1:1.4,z0:z-1.4,z1:z+1.4,tag:null});
+  COL.push({x0:x-.9,x1:x+.9,y0:1.4,y1:4.8,z0:z-.9,z1:z+.9,tag:null});
+  candles(x-1,z+1.2,1.4,4); candles(x+1,z+1.2,1.4,3); candles(x,z-1.1,1.4,4);
+}
+function dome(cx,cz,r){
+  // the crossing's ceiling is a slab with a round hole; the drum stands on it, the dome on that
+  var sh=new THREE.Shape();
+  sh.moveTo(-14.3,-13); sh.lineTo(14.3,-13); sh.lineTo(14.3,14); sh.lineTo(-14.3,14); sh.lineTo(-14.3,-13);
+  var hole=new THREE.Path(); hole.absarc(0,0,r,0,Math.PI*2,true); sh.holes.push(hole);
+  var cm=CH.wood.clone(); cm.side=THREE.DoubleSide;
+  var ceil=new THREE.Mesh(new THREE.ShapeGeometry(sh,32),cm);
+  ceil.rotation.x=Math.PI/2; ceil.position.set(cx,WALL_H+.01,cz); MAPG.add(ceil);
+  var drum=new THREE.Mesh(new THREE.CylinderGeometry(r,r,2,32,1,true),new THREE.MeshLambertMaterial({map:tmap('brickwall',16,1),color:0x8a8278,side:THREE.DoubleSide}));
+  drum.position.set(cx,WALL_H+1,cz); MAPG.add(drum);
+  for(var w=0;w<12;w++){
+    var a=w/12*Math.PI*2;
+    var win=noRay(new THREE.Mesh(new THREE.PlaneGeometry(1.2,1.4),new THREE.MeshBasicMaterial({color:0xd8d0a8})));
+    win.position.set(cx+Math.sin(a)*(r-.05),WALL_H+1,cz+Math.cos(a)*(r-.05)); win.rotation.y=a+Math.PI; MAPG.add(win);
+  }
+  var d=new THREE.Mesh(new THREE.SphereGeometry(r,32,14,0,Math.PI*2,.14,Math.PI/2-.14),CH.dome);
+  d.position.set(cx,WALL_H+2,cz); MAPG.add(d);
+  // gold rings up the dome, and the oculus at the top letting in a column of light
+  for(var k=0;k<3;k++){
+    var ang=.35+k*.38;
+    var ring=noRay(new THREE.Mesh(new THREE.TorusGeometry(r*Math.cos(ang)-.1,.1,5,40),CH.gold));
+    ring.rotation.x=Math.PI/2; ring.position.set(cx,WALL_H+2+r*Math.sin(ang),cz); MAPG.add(ring);
+  }
+  var base=noRay(new THREE.Mesh(new THREE.TorusGeometry(r-.1,.16,5,48),CH.gold)); base.rotation.x=Math.PI/2; base.position.set(cx,WALL_H+2,cz); MAPG.add(base);
+  var shaft=noRay(new THREE.Mesh(new THREE.CylinderGeometry(1.7,2.4,WALL_H+2+r,16,1,true),
+    new THREE.MeshBasicMaterial({color:0xfff0c8,transparent:true,opacity:.06,depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide})));
+  shaft.position.set(cx,(WALL_H+2+r)/2,cz); MAPG.add(shaft);
+  lamp(cx,cz,WALL_H+r-.5,0xffe8c0,34,1.5);
+}
+function organ(x0,x1,z){
+  var n=Math.round((x1-x0)/.42);
+  for(var i=0;i<n;i++){
+    var t=i/(n-1),h=2.6+Math.sin(t*Math.PI)*2;
+    var p=noRay(new THREE.Mesh(new THREE.CylinderGeometry(.16,.16,h,8),CH.gold)); p.position.set(x0+i*.42+.21,.9+h/2,z); MAPG.add(p);
+  }
+  var case1=new THREE.Mesh(new THREE.BoxGeometry(x1-x0+.4,.9,.8),CH.wood); case1.position.set((x0+x1)/2,.85,z); MAPG.add(case1);
+  COL.push({x0:x0-.2,x1:x1+.2,y0:0,y1:5,z0:z-.45,z1:z+.45,tag:null});
+}
+function bookcase(x,z,ry,len){
+  var g=new THREE.Group(); g.position.set(x,0,z); g.rotation.y=ry||0; MAPG.add(g);
+  var b=new THREE.Mesh(new THREE.BoxGeometry(len,3,.5),CH.wood); b.position.y=1.5; b.castShadow=true; g.add(b);
+  var cols=[0x6a1c1c,0x1c3a5a,0x2a4a2a,0x5a4a2a,0x3a2a4a,0x8a6a3a],mats=cols.map(function(c){return new THREE.MeshLambertMaterial({color:c});});
+  for(var sh=0;sh<5;sh++)for(var k=0;k<Math.floor(len/.5);k++){
+    var bk=new THREE.Mesh(new THREE.BoxGeometry(.4,.42,.06),mats[(sh*7+k*3)%mats.length]);
+    bk.position.set(-len/2+.3+k*.5,.35+sh*.56,.26); g.add(bk);
+  }
+  var c=Math.abs(Math.cos(ry||0)),s=Math.abs(Math.sin(ry||0));
+  COL.push({x0:x-(c*len/2+s*.3),x1:x+(c*len/2+s*.3),y0:0,y1:3,z0:z-(s*len/2+c*.3),z1:z+(s*len/2+c*.3),tag:null});
+}
+function buildChurch(){
+  var i;
+  churchMats();
+  placeGenerator(29.5,-13,Math.PI/2,'tower');
+  placePap(0,-52.6,0,'choir');
+  setBoxSpots([
+    {x:-8.6,z:45.6,ry:Math.PI/2,zone:'narthex'},
+    {x:10.6,z:31,ry:-Math.PI/2,zone:'nave'},
+    {x:-12.6,z:-30,ry:Math.PI/2,zone:'crossing'},
+    {x:-28.6,z:30,ry:Math.PI/2,zone:'sacristy'},
+    {x:28.6,z:16,ry:-Math.PI/2,zone:'library'},
+    {x:-30.6,z:-20,ry:Math.PI/2,zone:'chapel'}
+  ]);
+  /* floors: flagstones, a red runner up the nave */
+  floorPatch(-10,10,38,48,'tile',0x7c7266);
+  floorPatch(-12,12,2,34,'tile',0x6e665c);
+  floorPatch(-1.8,1.8,2,37,'rags',0x8a2020);
+  floorPatch(-14,14,-38,2,'tile',0x746a5e);
+  floorPatch(-30,-16,14,32,'wood',0x6a5038);
+  floorPatch(16,30,14,32,'wood',0x6a5038);
+  floorPatch(-32,-18,-24,-2,'tile',0x7c7266);
+  floorPatch(18,32,-24,-2,'concrete',0x6e6a64);
+  floorPatch(-12,12,-54,-42,'wood',0x5a4030);
+
+  /* ---- the narthex ---- */
+  wallRun('x',48,-10.31,10.31,[{a:-7,b:-4},{a:4,b:7}],-1,'narthex',CH.stone);
+  wallRun('z',-10,37.69,48.31,[{a:42,b:45}],1,'narthex',CH.stone);
+  wallRun('z',10,37.69,48.31,[{a:41,b:44}],-1,'narthex',CH.stone);
+  wallRun('x',38,-10.31,10.31,[{a:-2,b:2,plain:true}],1,'narthex',CH.stone);
+  woodCeil(-10.3,10.3,37.7,48.3,'z',6);
+  box(-2.4,0,36,.8,WALL_H,4.8,CH.stone); box(2.4,0,36,.8,WALL_H,4.8,CH.stone);
+  woodCeil(-2.8,2.8,33.6,38.4,'x',1);
+  // the font, benches, the saint's day notices
+  var font=new THREE.Mesh(new THREE.CylinderGeometry(.7,.4,1.1,10),CH.stoneD); font.position.set(-5,.55,41); MAPG.add(font);
+  var water=noRay(new THREE.Mesh(new THREE.CircleGeometry(.6,12),new THREE.MeshLambertMaterial({color:0x2a3a4a}))); water.rotation.x=-Math.PI/2; water.position.set(-5,1.09,41); MAPG.add(water);
+  COL.push({x0:-5.7,x1:-4.3,y0:0,y1:1.1,z0:40.3,z1:41.7,tag:null});
+  pew(5.5,46.8,4,Math.PI); pew(-5.5,46.8,3,Math.PI);
+  lamp(0,43,4.4,0xffd8a0,16,1);
+  stainedGlass(0,3.4,47.66,Math.PI,2,2.2,0);
+  perkMachine('tough',9.1,40,-Math.PI/2,'narthex');
+  wallBuy('ripsaw',-9.63,2.2,39.6,Math.PI/2,'narthex');
+
+  /* ---- the nave: pews either side of the runner, a cross aisle for the side doors ---- */
+  wallRun('x',34,-12.31,12.31,[{a:-2,b:2,plain:true}],-1,'nave',CH.stone);
+  wallRun('z',-12,1.69,34.31,[{a:20,b:24,plain:true},{a:8,b:11},{a:28,b:31}],1,'nave',CH.stone);
+  wallRun('z',12,1.69,34.31,[{a:20,b:24,plain:true},{a:8,b:11},{a:28,b:31}],-1,'nave',CH.stone);
+  woodCeil(-12.3,12.3,1.7,34.3,'x',8);
+  var rows=[5.5,8,10.5,13,15.5,26.5,29];
+  for(i=0;i<rows.length;i++){pew(-6.4,rows[i],7.6,0);pew(6.4,rows[i],7.6,0);}
+  for(i=0;i<4;i++){
+    var sz=[5,14.5,17.8,32][i];
+    stainedGlass(-11.66,3.5,sz,Math.PI/2,1.4,1.8,i); stainedGlass(11.66,3.5,sz,-Math.PI/2,1.4,1.8,i+1);
+  }
+  lamp(-5,12,4.3,0xffd8a0,16,1); lamp(5,24,4.3,0xffd8a0,16,1);
+  wallBuy('latch',11.63,2.2,17.5,-Math.PI/2,'nave');
+  perkMachine('dtap',-11.1,17,Math.PI/2,'nave');
+
+  /* ---- the crossing: the dome, the saint, the stage ---- */
+  wallRun('x',2,-14.31,14.31,[{a:-12,b:12,plain:true}],-1,'crossing',CH.stone);
+  wallRun('z',-14,-38.31,2.31,[{a:-15,b:-11,plain:true},{a:-30,b:-27},{a:-5,b:-2}],1,'crossing',CH.stone);
+  wallRun('z',14,-38.31,2.31,[{a:-15,b:-11,plain:true},{a:-30,b:-27},{a:-5,b:-2}],-1,'crossing',CH.stone);
+  wallRun('x',-38,-14.31,14.31,[{a:-2,b:2,plain:true},{a:-11,b:-8},{a:8,b:11}],1,'crossing',CH.stone);
+  dome(0,-12,12.6);
+  woodCeil(-14.3,14.3,-38.3,-25,'z',5);
+  saintStatue(0,-12);
+  // the stage: one step up, the altar at its front, the organ against the back wall
+  box(0,0,-33.8,18,.4,7.6,CH.woodL);
+  FLOORS.push({x0:-9,x1:9,z0:-37.6,z1:-30,y:.4});
+  box(0,.4,-31.4,2.8,1,1,CH.stone);
+  var cloth=new THREE.Mesh(new THREE.BoxGeometry(2.9,.06,1.1),CH.cloth); cloth.position.set(0,1.43,-31.4); MAPG.add(cloth);
+  candles(-.8,-31.4,1.46,3); candles(.8,-31.4,1.46,3);
+  var cv1=noRay(new THREE.Mesh(new THREE.BoxGeometry(.06,.6,.06),CH.gold)); cv1.position.set(0,1.76,-31.6); MAPG.add(cv1);
+  var cv2=noRay(new THREE.Mesh(new THREE.BoxGeometry(.34,.06,.06),CH.gold)); cv2.position.set(0,1.88,-31.6); MAPG.add(cv2);
+  box(-6.5,.4,-31.6,1.2,1.3,1.2,CH.wood);
+  organ(-9,-2.4,-37.2); organ(2.4,9,-37.2);
+  for(i=0;i<4;i++)box([-12.6,12.6,-12.6,12.6][i],0,[0,0,-24,-24][i],1.2,WALL_H,1.2,CH.stoneD);
+  lamp(-8,-28,4.3,0xffd8a0,15,1); lamp(8,-28,4.3,0xffd8a0,15,1);
+  wallBuy('steel',-13.63,2.2,-21,Math.PI/2,'crossing');
+  perkMachine('band',13.1,-20,-Math.PI/2,'crossing');
+
+  /* ---- sacristy (west of the nave) ---- */
+  box(-14,0,19.6,4.8,WALL_H,.8,CH.stone); box(-14,0,24.4,4.8,WALL_H,.8,CH.stone);
+  woodCeil(-16.4,-11.6,19.2,24.8,'x',1);
+  wallRun('z',-16,13.69,32.31,[{a:20,b:24,plain:true}],-1,'sacristy',CH.pale);
+  wallRun('z',-30,13.69,32.31,[{a:18,b:21},{a:26,b:29}],1,'sacristy',CH.pale);
+  wallRun('x',14,-30.31,-15.69,[{a:-26,b:-23}],1,'sacristy',CH.pale);
+  wallRun('x',32,-30.31,-15.69,[{a:-24,b:-21}],-1,'sacristy',CH.pale);
+  woodCeil(-30.3,-15.7,13.7,32.3,'z',4);
+  cabinet(-18.4,31.2,Math.PI,1.6); cabinet(-20.2,31.2,Math.PI,1.6);
+  box(-23,0,24,3,.9,1.2,CH.wood); candles(-23,24,.9,4);
+  crate(-28.6,15.6,1.2,1); crate(-27.2,15.4,1,.8,.3);
+  lamp(-23,23,4.3,0xffd8a0,15,1);
+  wallBuy('gauge',-29.63,2.2,23.5,Math.PI/2,'sacristy');
+  perkMachine('quick',-24.5,31.1,Math.PI,'sacristy');
+
+  /* ---- library (east of the nave) ---- */
+  box(14,0,19.6,4.8,WALL_H,.8,CH.stone); box(14,0,24.4,4.8,WALL_H,.8,CH.stone);
+  woodCeil(11.6,16.4,19.2,24.8,'x',1);
+  wallRun('z',16,13.69,32.31,[{a:20,b:24,plain:true}],1,'library',CH.pale);
+  wallRun('z',30,13.69,32.31,[{a:17,b:20},{a:25,b:28}],-1,'library',CH.pale);
+  wallRun('x',14,15.69,30.31,[{a:22,b:25}],1,'library',CH.pale);
+  wallRun('x',32,15.69,30.31,[{a:20,b:23}],-1,'library',CH.pale);
+  woodCeil(15.7,30.3,13.7,32.3,'z',4);
+  bookcase(21.5,17.4,0,4); bookcase(21.5,28.6,Math.PI,4); bookcase(26.6,23,Math.PI/2,4);
+  deskRun(21,23,0,3);
+  lamp(22,22,4.3,0xffe0b0,15,1);
+  wallBuy('kestrel',29.63,2.2,22.5,-Math.PI/2,'library');
+  perkMachine('eye',18.5,14.9,0,'library');
+
+  /* ---- lady chapel (west of the crossing) ---- */
+  box(-16,0,-15.4,4.8,WALL_H,.8,CH.stone); box(-16,0,-10.6,4.8,WALL_H,.8,CH.stone);
+  woodCeil(-18.4,-13.6,-15.8,-10.2,'x',1);
+  wallRun('z',-18,-24.31,-1.69,[{a:-15,b:-11,plain:true}],-1,'chapel',CH.stone);
+  wallRun('z',-32,-24.31,-1.69,[{a:-20,b:-17},{a:-9,b:-6}],1,'chapel',CH.stone);
+  wallRun('x',-24,-32.31,-17.69,[{a:-28,b:-25}],1,'chapel',CH.stone);
+  wallRun('x',-2,-32.31,-17.69,[{a:-26,b:-23}],-1,'chapel',CH.stone);
+  woodCeil(-32.3,-17.7,-24.3,-1.7,'x',4);
+  for(i=0;i<3;i++)pew(-25.5,-18+i*2.4,5,0);
+  box(-25,0,-4.2,3,1,1,CH.stone); candles(-25,-4.2,1,6);
+  stainedGlass(-21,3.4,-2.34,Math.PI,2,2.2,2);
+  for(i=0;i<2;i++)box(-20.2,0,-22.6+i*2,1.6,2.6,1.6,CH.wood);
+  lamp(-25,-12,4.3,0xc8a8ff,15,.9);
+  wallBuy('brack',-30,2.2,-2.37,Math.PI,'chapel');
+  perkMachine('boots',-31.1,-13,Math.PI/2,'chapel');
+
+  /* ---- bell tower (east of the crossing): the generator ---- */
+  box(16,0,-15.4,4.8,WALL_H,.8,CH.stone); box(16,0,-10.6,4.8,WALL_H,.8,CH.stone);
+  woodCeil(13.6,18.4,-15.8,-10.2,'x',1);
+  wallRun('z',18,-24.31,-1.69,[{a:-15,b:-11,plain:true}],1,'tower',CH.stoneD);
+  wallRun('z',32,-24.31,-1.69,[{a:-20,b:-17},{a:-9,b:-6}],-1,'tower',CH.stoneD);
+  wallRun('x',-24,17.69,32.31,[{a:24,b:27}],1,'tower',CH.stoneD);
+  wallRun('x',-2,17.69,32.31,[{a:22,b:25}],-1,'tower',CH.stoneD);
+  // the middle is open to the bell shaft
+  woodCeil(17.7,32.3,-24.3,-17,'x',2); woodCeil(17.7,32.3,-9,-1.7,'x',2);
+  woodCeil(17.7,21,-17,-9,'z',1); woodCeil(29,32.3,-17,-9,'z',1);
+  for(i=0;i<4;i++)box([21.2,28.8,21.2,28.8][i],WALL_H,[-16.8,-16.8,-9.2,-9.2][i],.4,9,.4,CH.stoneD,false);
+  // the shaft's four walls, up to the bell loft
+  box(25,WALL_H,-17,8.4,9,.3,CH.stoneD,false); box(25,WALL_H,-9,8.4,9,.3,CH.stoneD,false);
+  box(21,WALL_H,-13,.3,9,8.4,CH.stoneD,false); box(29,WALL_H,-13,.3,9,8.4,CH.stoneD,false);
+  var bm=CH.gold.clone(); bm.side=THREE.DoubleSide;
+  var bell=noRay(new THREE.Mesh(new THREE.CylinderGeometry(.5,1.2,1.6,14,1,true),bm)); bell.position.set(25,11,-13); MAPG.add(bell);
+  var rope=noRay(new THREE.Mesh(new THREE.CylinderGeometry(.03,.03,9,4),CH.cloth)); rope.position.set(25,5.7,-13); MAPG.add(rope);
+  box(25,14,-13,8.4,.4,8.4,CH.wood,false);
+  crate(20,-22.6,1.3,1.1); crate(21.5,-22.6,1.1,.8,.3); barrel(30.4,-22.4,false,M.rust);
+  lamp(25,-5,4.3,0xffd8a0,14,1);
+  wallBuy('sable',31.63,2.2,-13.8,-Math.PI/2,'tower');
+  perkMachine('mule',25,-2.9,Math.PI,'tower');
+
+  /* ---- the choir, behind the stage: Pack-a-Punch ---- */
+  box(-2.4,0,-40,.8,WALL_H,4.8,CH.stone); box(2.4,0,-40,.8,WALL_H,4.8,CH.stone);
+  woodCeil(-2.8,2.8,-42.4,-37.6,'x',1);
+  wallRun('x',-42,-12.31,12.31,[{a:-2,b:2,plain:true}],-1,'choir',CH.stone);
+  wallRun('x',-54,-12.31,12.31,[{a:-8,b:-5},{a:5,b:8}],1,'choir',CH.stone);
+  wallRun('z',-12,-54.31,-41.69,[{a:-50,b:-47}],1,'choir',CH.stone);
+  wallRun('z',12,-54.31,-41.69,[{a:-49,b:-46}],-1,'choir',CH.stone);
+  woodCeil(-12.3,12.3,-54.3,-41.7,'x',3);
+  pew(-7.5,-46,5,Math.PI/2); pew(7.5,-46,5,-Math.PI/2);
+  stainedGlass(-3.4,3.4,-53.66,0,1.6,2,1); stainedGlass(3.4,3.4,-53.66,0,1.6,2,2);
+  lamp(0,-47,4.3,0xc8a8ff,16,1.1);
+  wallBuy('hexa',-11.63,2.2,-44,Math.PI/2,'choir');
+  perkMachine('wind',11.1,-51,-Math.PI/2,'choir');
+
+  makeDoor('A',0,36,3.7,.55,750,['nave','crossing'],true,'corrA');
+  makeDoor('B',-14,22,.55,3.7,1000,'sacristy',false,'corrB');
+  makeDoor('D',14,22,.55,3.7,1000,'library',false,'corrD');
+  makeDoor('C',-16,-13,.55,3.7,1250,'chapel',false,'corrC');
+  makeDoor('E',16,-13,.55,3.7,1500,'tower',false,'corrE');
+  makeDoor('F',0,-40,3.7,.55,2000,'choir',true,'corrF');
+}
+
 /* ======================= maps ======================= */
 /* Adding a map is one entry here plus its build function. The build function may use any of
    box/wallRun/floorPatch/makeDoor/roof/props/perkMachine/wallBuy and the lab or garden
@@ -3878,8 +4438,8 @@ var MAPS=[
  start:{x:-18,z:0,yaw:-Math.PI/2},home:'foyer',sky:.18,
  zones:VAULTZONES,build:buildVault,sealed:true},
 {id:'garden',name:'The Garden',
- blurb:'A walled kitchen garden gone to seed. Glasshouse, orchard, allotment beds, and a pump house with the only working generator.',
- stat:'6 rooms · 6 doors · 8 perks',
+ blurb:'A walled kitchen garden gone to seed. Glasshouse, orchard, allotment beds, a pump house with the only working generator, and a barnyard out the back.',
+ stat:'7 rooms · 7 doors · 8 perks',
  start:{x:-17,z:0,yaw:Math.PI/2},home:'shed',sky:.28,
  zones:GARDENZONES,build:buildGarden},
 {id:'hotel',name:'The Hotel',
@@ -3887,7 +4447,13 @@ var MAPS=[
  stat:'12 rooms · 9 doors · 3 floors',
  start:{x:0,z:12,yaw:Math.PI},home:'alley',sky:.62,ground:false,
  zombies:{walker:1,runner:1.5,crawler:1.15,brute:.7,screamer:1.35,bloater:.85},
- zones:HOTELZONES,build:buildHotel}
+ zones:HOTELZONES,build:buildHotel},
+{id:'church',name:'The Cathedral',
+ blurb:'A stone church in dark wood under a great dome. Pews down the nave, a saint in the crossing, a stage, and six rooms off the sides.',
+ stat:'8 rooms · 6 doors · 8 perks',
+ start:{x:0,z:44,yaw:0},home:'narthex',sky:.12,
+ zombies:{walker:1,runner:1.2,crawler:1,brute:.8,screamer:1.3,bloater:.7},
+ zones:CHURCHZONES,build:buildChurch}
 ];
 function mapById(id){
   for(var i=0;i<MAPS.length;i++)if(MAPS[i].id===id)return MAPS[i];
@@ -3923,6 +4489,7 @@ function clearMapGroup(g){
 }
 function loadMap(id){
   var m=mapById(id);
+  boxPoolFor(id);
   CURMAP=m;
   clearMapGroup(MAPG); clearMapGroup(MAPD); clearMapGroup(flora);
   NAVLINKS.length=0;
@@ -3939,7 +4506,7 @@ function loadMap(id){
   SPAWN0.set(m.start.x,0,m.start.z); YAW0=m.start.yaw;
   ground.visible=m.ground!==false;
   m.build();
-  buildTall(); buildNav();
+  buildTall(); buildNav(); settleSpawns();
   // nothing may carry a node index across a rebuild of the lattice
   PL.length=0; PLBY={};
   return m;
@@ -4039,6 +4606,34 @@ var motes=new THREE.Group(); deco.add(motes);
 /* ======================= view model ======================= */
 var vmRoot=new THREE.Group(); camera.add(vmRoot);
 var vmGun=new THREE.Group(); vmRoot.add(vmGun);
+/* Pack-a-Punched guns carry a faint purple aura: a dozen soft motes drifting round the gun,
+   additive so they read as light, and small — it should say "upgraded", not hide the gun. */
+var vmMotes=new THREE.Group(); vmMotes.visible=false; vmRoot.add(vmMotes);
+(function(){
+  var c=document.createElement('canvas'); c.width=c.height=32; var g=c.getContext('2d');
+  if(g&&g.createRadialGradient){
+    var gr=g.createRadialGradient(16,16,0,16,16,16);
+    gr.addColorStop(0,'rgba(210,170,255,1)'); gr.addColorStop(.4,'rgba(150,90,255,.5)'); gr.addColorStop(1,'rgba(120,60,255,0)');
+    g.fillStyle=gr; g.fillRect(0,0,32,32);
+  }
+  var mat=new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),color:0xb07cff,transparent:true,
+    blending:THREE.AdditiveBlending,depthWrite:false,opacity:.55});
+  for(var i=0;i<12;i++){
+    var sp=new THREE.Sprite(mat); sp.scale.setScalar(.05);
+    sp.userData={a:Math.random()*6.3,z:-Math.random()*.5,r:.05+Math.random()*.05,sp:.6+Math.random()*1.2};
+    vmMotes.add(sp);
+  }
+})();
+function updateAura(dt){
+  var on=!!(gunId()&&papOn(gunId()));
+  vmMotes.visible=on; if(!on)return;
+  vmMotes.position.copy(vmGun.position); vmMotes.quaternion.copy(vmGun.quaternion);
+  for(var i=0;i<vmMotes.children.length;i++){
+    var s=vmMotes.children[i],u=s.userData; u.a+=dt*u.sp; u.z-=dt*.08; if(u.z<-.55)u.z=0;
+    s.position.set(Math.cos(u.a)*u.r,Math.sin(u.a)*u.r+.02,u.z);
+    s.material.opacity=.35+Math.sin(T*3+i)*.15;
+  }
+}
 var vmKnife=new THREE.Group(); camera.add(vmKnife); vmKnife.visible=false;
 
 var gm={
@@ -4250,6 +4845,39 @@ function buildGun(kind){
     pt(g,.062,.18,.098,0,-.12,.09,gm.grip).rotation.x=.2;
     guard(g,0,-.042,.02,.058);
     hand(g,.02,-.09,.11);
+  }else if(kind==='zap'){
+    // a coil gun: a body, three copper rings round a blue core, and a fork at the muzzle
+    var zg2=new THREE.MeshLambertMaterial({color:0x10243a,emissive:0x3fb4ff,emissiveIntensity:1});
+    var cu=new THREE.MeshPhongMaterial({color:0xb86a2a,shininess:70,specular:0xffc080});
+    pt(g,.12,.13,.44,0,0,-.12,gm.body);
+    pt(g,.06,.06,.4,0,.02,-.36,zg2);
+    for(var zr=0;zr<3;zr++)pt(g,.13,.13,.035,0,.02,-.24-zr*.1,cu);
+    pt(g,.02,.08,.1,.035,.05,-.58,cu); pt(g,.02,.08,.1,-.035,.05,-.58,cu);
+    mag=pt(g,.08,.14,.1,0,-.13,-.02,zg2);
+    pt(g,.062,.18,.098,0,-.12,.09,gm.grip).rotation.x=.2;
+    guard(g,0,-.042,.02,.058);
+    hand(g,.02,-.09,.11); lh=hand(g,-.01,-.11,-.3,-.3);
+  }else if(kind==='axe'){
+    // a felling axe held short: long haft forward, wedge head on top at the far end
+    pt(g,.045,.05,.78,0,0,-.2,gm.grip);
+    pt(g,.06,.2,.14,0,.09,-.56,gm.dark);
+    var ed=pt(g,.02,.26,.05,0,.1,-.64,gm.blade);
+    pt(g,.07,.08,.07,0,.06,-.5,gm.acc);
+    hand(g,.02,-.06,.1); lh=hand(g,-.01,-.07,-.12,-.3);
+  }else if(kind==='sickle'){
+    // a harvest sickle: short handle, a crescent of six blade segments curling round
+    pt(g,.04,.045,.3,0,0,0,gm.grip);
+    pt(g,.05,.05,.04,0,0,-.16,gm.acc);
+    var arc=[[0,.02,-.22,.2],[0,.08,-.3,.7],[0,.16,-.33,1.2],[0,.24,-.3,1.8],[0,.29,-.22,2.4],[0,.3,-.13,2.9]];
+    for(var ai=0;ai<arc.length;ai++){var sb=pt(g,.012,.035,.1,arc[ai][0],arc[ai][1],arc[ai][2],gm.blade);sb.rotation.x=arc[ai][3];}
+    hand(g,.02,-.06,.06);
+  }else if(kind==='pike'){
+    // a boarding pike: a long pole with a leaf head and a hook — the reach is the point
+    pt(g,.038,.038,1.2,0,0,-.35,gm.grip);
+    pt(g,.05,.05,.06,0,0,-.95,gm.acc);
+    var tip=pt(g,.015,.07,.26,0,0,-1.1,gm.blade);
+    pt(g,.012,.12,.03,0,.07,-.98,gm.blade);
+    hand(g,.02,-.06,.14); lh=hand(g,-.01,-.07,-.25,-.3);
   }
   g.userData.mag=mag; g.userData.lhand=lh;
   g.traverse(function(o){if(o.isMesh){o.castShadow=false;o.receiveShadow=false;o.raycast=function(){};}});
@@ -4284,7 +4912,7 @@ function streakTex(){
   var pivot=new THREE.Group(); pivot.position.set(0,-.004,.155); vmKnife.add(pivot);
   var g=new THREE.Group(); g.position.set(0,.004,-.155); pivot.add(g);
   // karambit: ringed handle, curved claw blade
-  var ring=new THREE.Mesh(new THREE.TorusGeometry(.036,.0095,6,14),gm.grip);
+  var ring=new THREE.Mesh(new THREE.TorusGeometry(.024,.007,6,14),gm.dark);
   ring.position.set(0,-.004,.155); ring.rotation.y=Math.PI/2; g.add(ring);
   pt(g,.022,.03,.13,0,0,.07,gm.grip);
   pt(g,.024,.012,.13,0,.018,.068,gm.dark);
@@ -4351,6 +4979,7 @@ function freshState(){
      zHp:130,zSpd:1.45,power:false,dbl:0,insta:0,freeze:0,sale:0,dm:0,killsToPower:(rnd(9,15)|0),
      boxUses:0,boxState:0,boxT:0,boxItem:null,boxBear:false,zoneShown:HOMEZONE,bonfire:0,
      papState:0,papT:0,papItem:null,cheated:false};
+  buffKey="x"; if(typeof refreshBuffs==="function"&&$("#buffs"))refreshBuffs();
   P={pos:SPAWN0.clone(),vel:new V3(),yaw:YAW0,pitch:0,ground:true,
      hp:100,max:100,lastHurt:-99,hitFlash:0,
      slots:['c9',null,null],slot:0,prev:0,ammo:{c9:{mag:12,res:120}},owned:{c9:true},
@@ -4359,7 +4988,7 @@ function freshState(){
      lastSafe:SPAWN0.clone(),pap:{},inspect:0,papBusy:0,
      down:false,out:false,bleed:0,outRound:-1,revT:0,revId:0,
      god:false,fly:false,infAmmo:false,spdMul:1};
-  for(var i=0;i<DOORS.length;i++){DOORS[i].open=false;DOORS[i].mesh.position.y=DOORS[i].y0;}
+  for(var i=0;i<DOORS.length;i++){DOORS[i].open=false;doorSink(DOORS[i],0);}
   for(var zk in ZONES)ZONES[zk].open=(zk===HOMEZONE);
 }
 function slotCount(){return P.perks&&P.perks.mule?3:2;}
@@ -4390,15 +5019,20 @@ function shoot(){
   if(T<P.next)return;
   var a=ammo();
   if(a.mag<=0){ P.burst=0; if(a.res>0&&OPT.autoReload)reload(); else AU.deny(); P.next=T+.28; return; }
+  if(w.melee){heavySwing(w);return;}
   if(w.burst&&P.burst<=0){P.burst=w.burst;}
   if(!P.infAmmo)a.mag--;
   P.next=T+fireRate(w);
   if(w.burst){P.burst--; if(P.burst<=0)P.next=T+w.burstGap;}
   AU.shot(w.snd);
   if(NET.on)netSend({t:'fx',k:'fire',s:w.snd});
-  var kick=w.kick*(P.perks.eye?.62:1)*(P.ads?.72:1);
+  /* Recoil is heavier than it used to be; crouching is how you tame it. */
+  var kick=w.kick*1.55*(P.perks.eye?.62:1)*(P.ads?.72:1)*(P.crouch>.5?.55:1);
   P.kick+=kick; VM.recoil+=kick*.5;
-  P.pitch+=kick*.0055; P.yaw+=rnd(-1,1)*kick*.002;
+  P.pitch+=kick*.0062; P.yaw+=rnd(-1,1)*kick*.0026;
+  // firing drops you out of a sprint: you cannot run flat out and shoot
+  if(P.sprinting){P.sprintOn=false;P.sprinting=false;}
+  P.noSprint=T+.45;
   mzTime=.055; muzzleLight.intensity=w.kick>2?8:4.5;
   muzzleGrp.visible=true; mzA.rotation.z=rnd(0,6.3); mzB.rotation.z=rnd(0,6.3);
   var sz=rnd(.8,1.35)*(w.pel>1?1.5:1); muzzleGrp.scale.setScalar(sz);
@@ -4409,7 +5043,7 @@ function shoot(){
   camera.getWorldPosition(tmpO);
   muzzleGrp.position.copy(vmRoot.position).add(new V3(0,.02,VM.muzzleZ-.1));
   var moving=P.vel.lengthSq()>16;
-  var spread=w.spread*(P.ads?.34:1)*(moving?1.45:1)*(P.perks.eye?.8:1);
+  var spread=w.spread*(P.ads?.34:1)*(moving?1.45:1)*(P.perks.eye?.8:1)*(P.crouch>.5?.7:1);
   var origin=tmpO.clone().addScaledVector(tmpD,.35);
   for(var i=0;i<w.pel;i++){
     var d=tmpD.clone()
@@ -4432,14 +5066,39 @@ function fireRay(o,d,w,primary,base0){
     if(z){
       var head=!!h.object.userData.head;
       var base=(base0===undefined?w.dmg:base0)*dmgMul();
+      /* SMGs and shotguns lose punch with distance; everything else hits the same to the end
+         of its range. */
+      if(w.fall)base*=h.distance<=w.fall[0]?1:h.distance>=w.fall[1]?w.fall[2]:
+        lerp(1,w.fall[2],(h.distance-w.fall[0])/(w.fall[1]-w.fall[0]));
       var dm=S.insta>0?1e9:base*(head?hsMul(w):1)*(z.base.armor&&!head?z.base.armor:1);
       spray(h.point,head?5:3,'blood',3.2,d.clone().multiplyScalar(1.4));
       if(w.splash){
         for(var j=0;j<ZS.length;j++){
           var o2=ZS[j]; if(o2===z||o2.dead)continue;
-          if(o2.obj.position.distanceTo(h.point)<w.splash)hurtZombie(o2,dm*.8,false,false);
+          if(o2.obj.position.distanceTo(h.point)<w.splash){
+            if(w.freeze)o2.frozen=w.freeze;
+            hurtZombie(o2,dm*.8,false,false);
+          }
         }
+        if(w.freeze){z.frozen=w.freeze;spray(h.point,22,'gas',6);}
         spray(h.point,12,'spark',5.5);
+      }
+      /* The Zappatron's bolt jumps on from what it hits to the nearest zombie it has not hit
+         yet, a few times, losing a quarter each jump. */
+      if(w.chain){
+        var done=[z],from=h.point.clone(),cd=dm;
+        for(var cj=0;cj<w.chain;cj++){
+          var nx=null,nd=6.5;
+          for(var ck=0;ck<ZS.length;ck++){
+            var oc=ZS[ck]; if(oc.dead||done.indexOf(oc)>=0)continue;
+            var dd2=oc.obj.position.distanceTo(from); if(dd2<nd){nd=dd2;nx=oc;}
+          }
+          if(!nx)break;
+          cd*=.75; done.push(nx);
+          var to2=nx.obj.position.clone(); to2.y+=1.2*nx.sz;
+          tracer(from,to2,0x7fd8ff); spray(to2,5,'spark',4);
+          hurtZombie(nx,cd,false,false); from=to2;
+        }
       }
       hurtZombie(z,dm,head,false);
       hitAny=true; end.copy(h.point);
@@ -4495,6 +5154,34 @@ function knifeStrike(){
     spray(best.obj.position.clone().setY(1.25),8,'blood',3.6);
     hurtZombie(best,S.insta>0?1e9:(240+S.round*28),false,true);
   }
+}
+function carried(id){var i=P.slots.indexOf(id);return i>=0&&i<slotCount();}
+/* The box's melee weapons. No ammo; each swing lands on everything in front of you within its
+   reach and arc, up to its cleave count, nearest first — an axe through a doorway full of
+   walkers is the whole point of carrying one. */
+function heavySwing(w){
+  P.next=T+fireRate(w); P.swing=.42; P.swingLen=.42;
+  if(P.sprinting){P.sprintOn=false;P.sprinting=false;} P.noSprint=T+.45;
+  AU.knife(); VM.recoil+=w.kick*.3;
+  camera.getWorldDirection(tmpD); tmpD.y=0; tmpD.normalize();
+  var hit=[],i;
+  for(i=0;i<ZS.length;i++){
+    var z=ZS[i]; if(z.dead)continue;
+    var to=z.obj.position.clone().sub(P.pos); var dy=Math.abs(to.y); to.y=0;
+    var d=to.length(); if(d>w.range+.4*z.sz||dy>1.6)continue;
+    if(d>.6&&to.normalize().dot(tmpD)<w.arc)continue;
+    if(!los(P.pos,z.obj.position))continue;
+    hit.push([d,z]);
+  }
+  hit.sort(function(a,b){return a[0]-b[0];});
+  var base=wDmg(gunId())*dmgMul();
+  for(i=0;i<hit.length&&i<w.cleave;i++){
+    var zz=hit[i][1];
+    spray(zz.obj.position.clone().setY(P.pos.y+1.3),8,'blood',3.8);
+    hurtZombie(zz,S.insta>0?1e9:base*(1-i*.08)*(zz.base.armor?zz.base.armor:1),false,true);
+  }
+  if(hit.length)P.shake=Math.max(P.shake||0,.15);
+  refreshHotbar();
 }
 function giveGun(id,full){
   var w=GUNS[id];
@@ -4606,13 +5293,21 @@ function updateVM(dt){
     if(mag&&mag.userData.y0!==undefined){mag.position.y=mag.userData.y0;mag.position.z=mag.userData.z0;mag.rotation.z=0;}
     if(lh&&lh.userData.y0!==undefined){lh.position.y=lh.userData.y0;lh.position.x=lh.userData.x0;lh.position.z=lh.userData.z0;}
   }
+  // a heavy weapon's swing: wind up over the right shoulder, cut down and across to the left
+  if(P.swing>0){
+    var sk=1-P.swing/P.swingLen,up=Math.sin(clamp(sk/.3,0,1)*Math.PI*.5),cut=ease(clamp((sk-.25)/.35,0,1)),back=ease(clamp((sk-.7)/.3,0,1));
+    var amt=(up-cut)*(1-back);
+    px+=amt*.12-cut*(1-back)*.26; py+=amt*.14-cut*(1-back)*.08;
+    rx+=amt*.9-cut*(1-back)*.5; ry+=cut*(1-back)*.9; rz+=cut*(1-back)*1.1-amt*.3;
+  }
   // melee: drop the gun aside
   if(P.melee>0){
     var m=1-P.melee/.58,mc=Math.sin(m*Math.PI);
     px+=mc*.2; py-=mc*.16; rz+=mc*.7; ry+=mc*.5;
   }else if(P.inspect>0){
+    // the knife comes up in the OTHER hand, so the gun only dips a little and stays put
     var ic=Math.sin(clamp(1-P.inspect/INSPECT_LEN,0,1)*Math.PI);
-    px+=ic*.22; py-=ic*.22; rz+=ic*.72; ry+=ic*.46;
+    px+=ic*.06; py-=ic*.1; rz-=ic*.18; ry-=ic*.1;
   }
   vmRoot.position.set(px,py,pz);
   vmRoot.rotation.set(rx,ry,rz);
@@ -4648,17 +5343,18 @@ function updateVM(dt){
     // the hand only rolls at the wrist and takes the weight; it never turns over
     if(kHand){
       var sw=Math.sin(it*Math.PI);
-      kHand.rotation.set(sw*.09,0,sw*.2);
+      kHand.rotation.set(sw*.09,0,-sw*.2);
       kHand.position.y=-sw*.012;
     }
+    // left hand: every x and every yaw/roll mirrored from the old right-hand pose
     vmKnife.position.set(
-      lerp(.46,.07,rise)+drop*.44,
-      lerp(-.52,-.13,rise)-drop*.4,
-      lerp(-.18,-.33,rise)+drop*.13);
+      -(lerp(.5,.14,rise)+drop*.44),
+      lerp(-.52,-.15,rise)-drop*.4,
+      lerp(-.18,-.34,rise)+drop*.13);
     vmKnife.rotation.set(
       lerp(-.7,-.05,rise)+Math.sin(it*Math.PI)*.1,
-      lerp(1.15,.28,rise)-Math.sin(it*Math.PI)*.12,
-      lerp(-.95,.05,rise));
+      -(lerp(1.15,.28,rise)-Math.sin(it*Math.PI)*.12),
+      -lerp(-.95,.05,rise));
     knifeTrail.material.opacity=0;
   }else{
     vmKnife.visible=false;
@@ -4670,7 +5366,7 @@ function updateVM(dt){
   var papNow=!!(P.slots[P.slot]&&papOn(gunId()));
   if(vmAura.visible!==papNow)vmAura.visible=papNow;
   if(papNow){
-    auraMat.opacity=.12+Math.sin(T*2.6)*.045;
+    auraMat.opacity=.07+Math.sin(T*2.6)*.03;
     vmAura.rotation.z=Math.sin(T*.8)*.06;
   }
 
@@ -4767,11 +5463,58 @@ function buildZombie(type){
   var blob=noRay(new THREE.Mesh(new THREE.PlaneGeometry(1.15,1.15),
     new THREE.MeshBasicMaterial({map:TEX_BLOB,transparent:true,opacity:.55,depthWrite:false})));
   blob.rotation.x=-Math.PI/2; blob.position.y=.03; blob.visible=!potato(); root.add(blob);
+  var extra={};
+  if(t.moss){
+    // clumps of moss and a lichen crust over the shoulders and head
+    var mossM=new THREE.MeshLambertMaterial({color:0x5f8a2e});
+    var tufts=[[hips,-.3,.86,.05,.28],[hips,.3,.86,.02,.3],[hips,0,.8,-.2,.34],[neck,0,.3,0,.3],[hips,.1,.45,.2,.24],[hips,-.2,.2,.19,.2]];
+    for(var mq=0;mq<tufts.length;mq++){
+      var tf=tufts[mq],mm=mesh(tf[0],new THREE.BoxGeometry(tf[4],tf[4]*.45,tf[4]*.8),mossM,tf[1],tf[2],tf[3]);
+      mm.rotation.set(rnd(-.3,.3),rnd(0,3),rnd(-.3,.3));
+    }
+    torso.scale.x*=1.12; chest.scale.set(chest.scale.x*1.18,chest.scale.y,chest.scale.z*1.1);
+  }
+  if(t.blaze){
+    // a body that is burning: flame sprites on the shoulders and head that flicker in animate
+    extra.flames=[];
+    var flM=new THREE.SpriteMaterial({map:TEX_FLARE,color:0xff7a20,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false});
+    [[hips,-.36,.95,0],[hips,.36,.95,0],[neck,0,.38,0],[hips,0,.5,.2]].forEach(function(f){
+      var sp=noRay(new THREE.Sprite(flM)); sp.position.set(f[1],f[2],f[3]); sp.scale.setScalar(.5); f[0].add(sp); extra.flames.push(sp);
+    });
+    skin.emissive=new THREE.Color(0x401000);
+  }
+  if(t.shade){
+    // half there: every body material faded, so it reads as a shape in the dark
+    [skin,cloth].forEach(function(mt){mt.transparent=true;mt.opacity=.38;mt.depthWrite=false;});
+  }
+  if(t.bomb){
+    // a strapped charge on the chest with a light that blinks faster as the fuse burns
+    mesh(hips,new THREE.BoxGeometry(.5,.3,.14),new THREE.MeshLambertMaterial({color:0x6b2a1a}),0,.62,.27);
+    extra.lamp=new THREE.MeshBasicMaterial({color:0x400000});
+    mesh(hips,new THREE.BoxGeometry(.1,.1,.06),extra.lamp,0,.66,.36);
+  }
+  if(t.dog){
+    // a rotting hound: the humanoid rig stays as the hit box, hidden; this is what you see
+    root.traverse(function(o){if(o.isMesh&&o!==blob)o.visible=false;});
+    var dg=new THREE.Group(); root.add(dg);
+    var bodyD=mesh(dg,new THREE.BoxGeometry(.36,.38,1),skin,0,.62,0);
+    var hd=mesh(dg,new THREE.BoxGeometry(.3,.28,.34),skin,0,.8,.62); hd.userData.head=true;
+    mesh(dg,new THREE.BoxGeometry(.18,.14,.26),skin,0,.72,.86);
+    mesh(dg,zg.eye,eyeM,-.08,.86,.8); mesh(dg,zg.eye,eyeM,.08,.86,.8);
+    mesh(dg,new THREE.BoxGeometry(.07,.14,.05),skin,-.1,.99,.56); mesh(dg,new THREE.BoxGeometry(.07,.14,.05),skin,.1,.99,.56);
+    mesh(dg,new THREE.BoxGeometry(.3,.06,.5),new THREE.MeshLambertMaterial({color:0x6a2a22}),0,.82,-.05); // exposed ribs
+    var tail=limb(dg,0,.72,-.5); mesh(tail,new THREE.BoxGeometry(.06,.06,.4),skin,0,0,-.2);
+    var dl=[];
+    [[-.13,.38],[.13,.38],[-.13,-.38],[.13,-.38]].forEach(function(q){
+      var lg=limb(dg,q[0],.5,q[1]); mesh(lg,new THREE.BoxGeometry(.1,.5,.1),skin,0,-.25,0); dl.push(lg);
+    });
+    extra.dog={g:dg,legs:dl,tail:tail,head:hd};
+  }
   var build=rnd(.93,1.07);
   torso.scale.multiplyScalar(build); chest.scale.multiplyScalar(build);
   root.scale.setScalar(t.scale*build);
   return {root:root,body:body,hips:hips,neck:neck,head:head,jaw:jaw,torso:torso,chest:chest,
-          arms:arms,legs:legs,skin:skin,cloth:cloth,rag:ragM,blob:blob,sz:t.scale*build};
+          arms:arms,legs:legs,skin:skin,cloth:cloth,rag:ragM,blob:blob,sz:t.scale*build,x:extra};
 }
 function spawnZombie(type,pos){
   var t=ZTYPES[type],b=buildZombie(type);
@@ -4819,6 +5562,7 @@ function zombieCorpse(z,head){
     spray(z.obj.position.clone().setY(1.65),10,'blood',5);
   }
   if(z.base.burst)gasCloud(z.obj.position.clone());
+  if(z.base.bomb&&!z.blown&&!netGuest())blast(z,false);
 }
 function hurtZombie(z,dmg,head,melee){
   if(z.dead)return;
@@ -4835,16 +5579,14 @@ function hurtZombie(z,dmg,head,melee){
   z.hp-=dmg; z.flash=1; z.flinch=Math.min(1,z.flinch+.55);
   if(z.hp<=0){
     zombieCorpse(z,head);
-    S.kills++; if(head)S.heads++;
-    addPoints(melee?130:(head?100:60));
     maybePower(z.obj.position);
-    /* The kill belongs to whoever reported the shot, not to whoever is simulating. */
-    var by=NET.killBy||0;
-    if(NET.on&&by&&by!==NET.id){
-      S.kills--; if(head)S.heads--;
-      addPoints(-(melee?130:(head?100:60)));
-      netSend({t:'ev',k:'kill',by:by,h:head?1:0,p:melee?130:(head?100:60)});
-    }else markHit('kill');
+    /* The kill belongs to whoever reported the shot, not to whoever is simulating. Decide
+       that first and pay exactly one wallet: paying the host and then taking it back still
+       showed the host a +60 for somebody else's kill, and with rounding it did not always
+       come back out to zero. */
+    var by=NET.killBy||0,pay=melee?130:(head?100:60);
+    if(NET.on&&by&&by!==NET.id)netSend({t:'ev',k:'kill',by:by,h:head?1:0,p:pay});
+    else{S.kills++; if(head)S.heads++; addPoints(pay); markHit('kill');}
   }else{
     if(!(NET.on&&NET.killBy&&NET.killBy!==NET.id))addPoints(10);
     if(head){AU.crit();markHit('crit');}else{AU.hit();markHit('');}
@@ -4932,7 +5674,11 @@ function zTarget(z){
   if(z.direct||!z.path||!z.path.length)return home;
   var node=NAV[z.path[0]];
   if(!node){z.path=null;return home;}
-  if(p.distanceTo(node.p)<1.9){
+  /* Letting go of a waypoint early smooths the walk, but only when the next leg is clear:
+     dropping it 1.9 m out while a rack stands between us and the next node is exactly how a
+     zombie ends up rubbing that rack instead of walking round it. */
+  var dn=p.distanceTo(node.p);
+  if(dn<.7||(dn<1.9&&(z.path.length<2||los(p,NAV[z.path[1]].p)))){
     z.path.shift();
     if(!z.path.length)return home;
     node=NAV[z.path[0]];
@@ -5050,12 +5796,15 @@ function updateZombies(dt){
       }
       if(z.swing<=0)z.atk=z.base.cd;
     }else{
-      if(z.atk>0)z.atk-=dt;
-      if(tp&&pd<reach&&z.atk<=0&&z.spawnT<=0&&!CON.freeze&&Math.abs(o.position.y-tpos.y)<2.4){
+      if(z.atk>0&&!(z.frozen>0))z.atk-=dt;
+      if(z.base.bomb){zBomb(z,dt,pd);}
+      else if(tp&&pd<reach&&z.atk<=0&&z.spawnT<=0&&!CON.freeze&&Math.abs(o.position.y-tpos.y)<2.4){
         z.swing=.5; z.hitDone=false; AU.groan(z.type);
       }
     }
 
+    if(z.dead)continue;
+    if(z.base.blaze&&tp)zBlaze(z,dt,pd,tp);
     // steering
     if(z.direct===undefined)rethink(z);
     var tgt=zTarget(z);
@@ -5068,10 +5817,10 @@ function updateZombies(dt){
       if(l<mind&&l>.001)dir.addScaledVector(dd.divideScalar(l),(mind-l)*1.8);
     }
     dir.normalize();
-    var spd=z.spd*(z.spawnT>0?.2:1)*(S.freeze>0?.35:1)*(z.swing>0?.1:1)*(1-z.flinch*.45)*(z.rage>T?1.38:1)*(CON.freeze?0:1);
+    var spd=z.spd*(z.spawnT>0?.2:1)*(S.freeze>0?.35:1)*(z.frozen>0?.12:1)*(z.swing>0?.1:1)*(1-z.flinch*.45)*(z.rage>T?1.38:1)*(CON.freeze?0:1);
     if(pd>reach*.85||!z.direct){
       zMove(z,dir.x*spd*dt,dir.z*spd*dt);
-      z.phase+=dt*spd*(z.type==='crawler'?4.6:3.3)/Math.max(.5,z.sz);
+      z.phase+=dt*spd*(z.type==='crawler'||z.base.dog?4.6:3.3)/Math.max(.5,z.sz);
     }
     // clamber up and step back down, so height is never safety
     var wantY=z.stand||0;
@@ -5119,7 +5868,16 @@ function animateZombie(z,dt,pd,look){
   }
   B.neck.rotation.y=lerp(B.neck.rotation.y,want,Math.min(1,dt*5));
   var swingP=z.swing>0?1-z.swing/.5:0;
-  if(t==='crawler'){
+  var X=B.x||{};
+  if(X.flames)for(var fi=0;fi<X.flames.length;fi++)X.flames[fi].scale.setScalar(.42+Math.abs(Math.sin(T*9+fi*1.7))*.25);
+  if(X.lamp){var fu=z.fuse!==undefined?Math.max(0,z.fuse):9;X.lamp.color.setHex(Math.sin(T*(fu<9?40:5))>0?0xff2010:0x400000);}
+  if(X.dog){
+    var dgl=X.dog.legs;
+    dgl[0].rotation.x=sw*.8; dgl[3].rotation.x=sw*.8; dgl[1].rotation.x=-sw*.8; dgl[2].rotation.x=-sw*.8;
+    X.dog.tail.rotation.y=Math.sin(T*6)*.5; X.dog.g.position.y=Math.abs(cw)*.05;
+    X.dog.g.rotation.x=z.swing>0?-Math.sin(swingP*Math.PI)*.35:0;
+  }
+  if(t==='crawler'||X.dog){
     B.hips.position.y=.34+Math.abs(sw)*.06;
     B.hips.rotation.x=1.15;
     B.legs[0].hp.rotation.x=-1.3+sw*.2; B.legs[1].hp.rotation.x=-1.3-sw*.2;
@@ -5295,7 +6053,11 @@ lmg:[[25,11,53,15],[41,27,27,14],[78,16,27,6],[11,13,15,13],[33,6,16,5]],
 burst:[[30,13,46,12],[76,17,23,5],[13,14,18,11],[46,25,11,18],[39,25,10,13],[44,8,18,5]],
 ray:[[40,11,38,17],[78,14,15,11],[33,16,8,8],[50,28,11,13],[59,6,15,5]],
 launcher:[[27,12,51,15],[78,13,23,13],[40,27,25,12],[11,14,16,12],[36,6,14,5]],
-autoshot:[[23,13,59,12],[44,26,23,13],[82,16,21,6],[9,13,15,13],[46,9,10,4]]
+autoshot:[[23,13,59,12],[44,26,23,13],[82,16,21,6],[9,13,15,13],[46,9,10,4]],
+zap:[[34,12,40,15],[74,15,20,9],[42,10,4,19],[52,10,4,19],[62,10,4,19],[94,12,10,4],[94,21,10,4],[44,26,11,14]],
+axe:[[14,19,76,6],[84,6,12,30],[80,12,6,16]],
+sickle:[[14,19,34,7],[48,17,6,10],[54,10,30,5],[82,14,8,12],[84,24,6,8]],
+pike:[[6,20,90,4],[96,16,18,12],[92,12,4,8]]
 };
 function drawIcon(cnv,id){
   var g=cnv.getContext('2d'); if(!g||!g.clearRect)return;
@@ -5346,7 +6108,7 @@ function refreshHotbar(){
       drawIcon(sl.ic,id);
     }
     if(id){
-      var a=P.ammo[id],inf=GUNS[id].temp;
+      var a=P.ammo[id],inf=GUNS[id].temp||GUNS[id].melee;
       var m=inf?'\u221e':String(a.mag),r=inf?'\u221e':String(a.res);
       if(sl.mag.textContent!==m){sl.mag.textContent=m;changed=true;}
       if(sl.res.textContent!=='/ '+r){sl.res.textContent='/ '+r;}
@@ -5359,11 +6121,27 @@ function refreshHp(){
   var f=$('#hpfill'),r=clamp(P.hp/P.max,0,1);
   f.style.width=(r*100)+'%'; f.classList.toggle('hurt',r<.55);
 }
+/* Perk badges draw what the perk does, not its initial: a bullet with speed chevrons for Double
+   Tap, a gun with a plus for Mule Kick, and so on. White line art on the perk's colour. */
+var PERK_SVG={
+boots:'<path d="M7 7h6l1 7 6 2v3H7z" fill="#fff"/><path d="M2 9h4M1 12h5M2 15h4" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>',
+tough:'<path d="M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6z" fill="none" stroke="#fff" stroke-width="1.8"/><path d="M12 8v8M8 12h8" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>',
+quick:'<rect x="9" y="6" width="6" height="12" rx="1" fill="#fff"/><path d="M4 12a8 8 0 0 1 13-6" fill="none" stroke="#fff" stroke-width="1.6"/><path d="M17 3v4h-4" fill="none" stroke="#fff" stroke-width="1.6"/><path d="M20 12a8 8 0 0 1-13 6" fill="none" stroke="#fff" stroke-width="1.6"/>',
+dtap:'<path d="M13 9h5l3 3-3 3h-5z" fill="#fff"/><path d="M3 8l4 4-4 4M8 8l4 4-4 4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>',
+eye:'<path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6S2 12 2 12z" fill="none" stroke="#fff" stroke-width="1.6"/><circle cx="12" cy="12" r="2.6" fill="#fff"/><path d="M12 2v4M12 18v4" stroke="#fff" stroke-width="1.4"/>',
+mule:'<path d="M2 10h11l1-2h3v5h-5l-1 4H8l1-4H2z" fill="#fff"/><path d="M19 15v6M16 18h6" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>',
+wind:'<path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.5-7 10-7 10z" fill="#fff"/><path d="M9 12h3l1-2 1.5 4 1-2H17" fill="none" stroke="#000" stroke-opacity=".55" stroke-width="1.3"/>',
+band:'<path d="M3 18L20 5" stroke="#fff" stroke-width="3" stroke-linecap="round"/><path d="M6 12l2 3M9.5 9.5l2 3M13 7l2 3M16.5 4.5l2 3" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/>'
+};
+function perkBadge(k){
+  return '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">'+(PERK_SVG[k]||'')+'</svg>';
+}
 function refreshPerks(){
   var w=$('#perks'); w.innerHTML='';
   for(var k in P.perks){
     if(!P.perks[k])continue;
-    var d=document.createElement('div'); d.className='perk'; d.textContent=PERKS[k].tag;
+    var d=document.createElement('div'); d.className='perk';
+    if(PERK_SVG[k])d.innerHTML=perkBadge(k); else d.textContent=PERKS[k].tag;
     d.title=PERKS[k].name;
     var c='#'+('000000'+PERKS[k].color.toString(16)).slice(-6);
     d.style.background=c; d.style.color=c; w.appendChild(d);
@@ -5401,6 +6179,7 @@ function pickType(){
   var roster=(CURMAP&&CURMAP.zombies)||null;
   for(k in ZTYPES){
     var t=ZTYPES[k]; if(S.round<t.minRound)continue;
+    if(t.maps&&(!CURMAP||t.maps.indexOf(CURMAP.id)<0))continue;
     var w=t.weight*(k==='walker'?Math.max(.3,1-S.round*.03):1)*(roster&&roster[k]!==undefined?roster[k]:1);
     pool.push([k,w]); total+=w;
   }
@@ -5589,7 +6368,8 @@ function buyLabel(b){
     return{txt:PERKS[b.perk].name,price:b.price,sub:PERKS[b.perk].note};
   }
   var w=GUNS[b.gun];
-  if(P.owned[b.gun]){
+  // "owned" means in your hands now: swap it away and the wall sells you the gun again
+  if(carried(b.gun)){
     var a=P.ammo[b.gun];
     if(a.res>=wRes(b.gun)&&a.mag>=wMag(b.gun))return null;
     return{txt:w.name+' ammo',price:S.bonfire>0?10:w.ammo,sub:S.bonfire>0?'bonfire sale':''};
@@ -5705,7 +6485,7 @@ function doBuy(){
     banner(PERKS[b.perk].name.toUpperCase(),PERKS[b.perk].note);
   }else{
     AU.buy();
-    if(P.owned[b.gun]){P.ammo[b.gun].res=wRes(b.gun);refreshHotbar();popup('AMMO');}
+    if(carried(b.gun)){P.ammo[b.gun].res=wRes(b.gun);refreshHotbar();popup('AMMO');}
     else{giveGun(b.gun,true);banner(GUNS[b.gun].name.toUpperCase(),'');}
   }
   promptKey=''; scanBuys();
@@ -5812,6 +6592,22 @@ function roomAt(y,skip){
   }
   return true;
 }
+/* Tall props are not floors. Chaining jumps from a crate to a cabinet to the top of a pillar
+   put players where no zombie could reach them; now the top of anything that stands more than
+   1.5 m over the floor it is on refuses a landing, and you slide back off it. Real floors,
+   stair treads and slabs are FLOORS and always take your weight. */
+function perch(b){
+  if(b.perch===undefined){
+    var fl=false,base=0,i;
+    for(i=0;i<FLOORS.length;i++){
+      var f=FLOORS[i];
+      if(Math.abs(f.y-b.y1)<.02&&f.x0<=b.x0+.01&&f.x1>=b.x1-.01&&f.z0<=b.z0+.01&&f.z1>=b.z1-.01){fl=true;break;}
+      if(f.y<b.y1-.05&&f.y>base&&f.x0<b.x1&&f.x1>b.x0&&f.z0<b.z1&&f.z1>b.z0)base=f.y;
+    }
+    b.perch=!fl&&b.y1-base>1.5&&b.y1-b.y0<6;
+  }
+  return b.perch;
+}
 function moveAxis(axis,amt){
   if(!amt)return;
   var prevY=axis==='y'?P.pos.y:0;
@@ -5827,7 +6623,7 @@ function moveAxis(axis,amt){
     else if(axis==='z')P.pos.z+=amt>0?(b.z0-p.z1):(b.z1-p.z0);
     else if(amt<0){
       // only land on it if we were genuinely above it last frame
-      if(prevY>=b.y1-.02){P.pos.y=b.y1;P.ground=true;P.vel.y=0;}
+      if(prevY>=b.y1-.02&&!perch(b)){P.pos.y=b.y1;P.ground=true;P.vel.y=0;}
     }else if(prevY+PH<=b.y0+.02){P.pos.y=b.y0-PH;P.vel.y=0;}
   }
 }
@@ -5871,6 +6667,75 @@ function hurtPlayer(dmg,src){
    guest is reported to that guest, which applies it to its own P. The number on the wire is
    the base, before difficulty, because each browser scales it with the same run settings it
    was started with. */
+/* Damage to one player from something that is not a zombie's swing: a blast, a fireball. */
+function hurtPl(e,d,pos){
+  if(!e)return;
+  if(e.local)hurtPlayer(d,pos);
+  else netSend({t:'ev',k:'hurt',to:e.id,d:d,p:[+pos.x.toFixed(1),+pos.y.toFixed(1),+pos.z.toFixed(1)]});
+}
+/* A Bombie walks up, lights its fuse, blinks for most of a second and goes off: it hurts every
+   player in the blast and every zombie too. Shoot it first and it still goes off where it
+   drops, which only hurts the dead around it. */
+function zBomb(z,dt,pd){
+  if(z.fuse===undefined){
+    if(pd<z.base.reach&&z.spawnT<=0&&!(z.frozen>0)){z.fuse=.85;AU.click(.4);}
+    return;
+  }
+  z.fuse-=dt;
+  if(z.fuse<=0)blast(z,true);
+}
+function blast(z,hurtsPlayers){
+  if(z.blown)return; z.blown=true;
+  var p=z.obj.position.clone(); p.y+=1;
+  AU.shot('launch'); spray(p,30,'spark',8); spray(p,16,'blood',6);
+  P.shake=Math.max(P.shake||0,.4);
+  if(NET.on)netSend({t:'fx',k:'boom',p:[+p.x.toFixed(1),+p.y.toFixed(1),+p.z.toFixed(1)]});
+  if(hurtsPlayers)for(var i=0;i<PL.length;i++){
+    var d=PL[i].pos.distanceTo(z.obj.position);
+    if(d<3.6)hurtPl(PL[i],Math.round(62*(1-d/4.5)),p);
+  }
+  var kb=NET.killBy; NET.killBy=-1;       // a blast's kills are nobody's to be paid for
+  for(var j=0;j<ZS.length;j++){
+    var o=ZS[j]; if(o===z||o.dead)continue;
+    if(o.obj.position.distanceTo(z.obj.position)<3.6)hurtZombie(o,S.zHp*2.2,false,false);
+  }
+  NET.killBy=kb;
+  if(!z.dead){zombieCorpse(z,false);}
+}
+/* A Blaze keeps its distance and throws fire: a slow ball you can see coming and side-step. */
+var BALLS=[],ballGeo=null,ballMat=null;
+function zBlaze(z,dt,pd,tp){
+  z.fireT=(z.fireT===undefined?rnd(1,2.5):z.fireT)-dt;
+  if(z.fireT>0||z.spawnT>0||z.frozen>0||pd>17||pd<2.2)return;
+  var from=z.obj.position.clone(); from.y+=1.45*z.sz;
+  var to=tp.pos.clone(); to.y+=1.2;
+  if(!los(z.obj.position,tp.pos))return;
+  z.fireT=rnd(2.6,3.6);
+  var v=to.sub(from).normalize().multiplyScalar(9.5);
+  fireball(from,v,true);
+  if(NET.on)netSend({t:'fx',k:'ball',p:[+from.x.toFixed(2),+from.y.toFixed(2),+from.z.toFixed(2)],v:[+v.x.toFixed(2),+v.y.toFixed(2),+v.z.toFixed(2)]});
+}
+function fireball(p,v,live){
+  if(!ballGeo){ballGeo=new THREE.SphereGeometry(.22,8,6);
+    ballMat=new THREE.MeshBasicMaterial({color:0xffa030});}
+  var m=noRay(new THREE.Mesh(ballGeo,ballMat)); m.position.copy(p); fx.add(m);
+  var gl=noRay(new THREE.Sprite(new THREE.SpriteMaterial({map:TEX_FLARE,color:0xff7020,transparent:true,
+    blending:THREE.AdditiveBlending,depthWrite:false}))); gl.scale.setScalar(1.3); m.add(gl);
+  BALLS.push({m:m,v:v.clone(),life:2.6,live:live});
+  AU.tone(220,90,.35,'sawtooth',.12);
+}
+function updateBalls(dt){
+  for(var i=BALLS.length-1;i>=0;i--){
+    var b=BALLS[i],p=b.m.position; p.addScaledVector(b.v,dt); b.life-=dt;
+    var gone=b.life<=0||blocked(p.x,p.z,.05,p.y-1.4)||p.y<0;
+    if(!gone&&b.live)for(var k=0;k<PL.length;k++){
+      var e=PL[k],dx=e.pos.x-p.x,dz=e.pos.z-p.z,dy=(e.pos.y+1.1)-p.y;
+      if(dx*dx+dz*dz<.36&&Math.abs(dy)<1){hurtPl(e,20,p);gone=true;break;}
+    }
+    if(!gone&&!b.live&&P.pos.distanceTo(p)<.6)gone=true;
+    if(gone){spray(p,10,'spark',4);fx.remove(b.m);BALLS.splice(i,1);}
+  }
+}
 function hurtTarget(z,e){
   if(!e)return;
   if(e.local)hurtPlayer(z.base.dmg,z.obj.position);
@@ -6577,10 +7442,13 @@ function step(dt){
   var fx1=0,fz=0;
   if(held('forward'))fz+=1; if(held('back'))fz-=1; if(held('right'))fx1+=1; if(held('left'))fx1-=1;
   var wantS=OPT.sprintMode?P.sprintOn:held('sprint');
-  if(wantS&&(fz<=0||P.ads||P.down||P.out)){wantS=false;if(OPT.sprintMode)P.sprintOn=false;}
+  if(wantS&&(fz<=0||P.ads||P.down||P.out||T<(P.noSprint||0)||held('fire'))){wantS=false;if(OPT.sprintMode)P.sprintOn=false;}
+  var wantC=held('crouch')&&!P.down&&!P.out;
+  if(wantC){wantS=false;if(OPT.sprintMode)P.sprintOn=false;}
+  P.crouch=lerp(P.crouch||0,wantC?1:0,Math.min(1,dt*12));
   P.sprinting=wantS;
   var sprint=wantS?1.45:1;
-  var sp=5.3*sprint*(P.perks.boots?1.25:1)*(P.ads?.6:1)*(P.melee>0?.8:1)*(P.spdMul||1);
+  var sp=5.3*sprint*(P.crouch>.5?.55:1)*(P.perks.boots?1.25:1)*(P.ads?.6:1)*(P.melee>0?.8:1)*(P.spdMul||1);
   // a crawl while you are bleeding; nothing at all once you are out of the round
   if(P.down)sp=1.4;
   if(P.out){sp=0;fx1=0;fz=0;}
@@ -6618,7 +7486,7 @@ function step(dt){
   P.step+=dt*(moving?(sprint>1?12.5:8.6):0);
   P.bob=lerp(P.bob,moving?1:0,dt*7);
   var sh=P.shake*OPT.shake,ld=P.land*OPT.shake;
-  camera.position.set(P.pos.x,P.pos.y+(P.down?.62:1.63)+Math.sin(P.step*2)*.036*P.bob*OPT.bob-ld*.19,P.pos.z);
+  camera.position.set(P.pos.x,P.pos.y+(P.down?.62:1.63-(P.crouch||0)*.55)+Math.sin(P.step*2)*.036*P.bob*OPT.bob-ld*.19,P.pos.z);
   camera.rotation.y=P.yaw+Math.sin(T*37)*sh*.014;
   camera.rotation.x=P.pitch+ld*.055+Math.sin(T*53)*sh*.019;
   camera.rotation.z=Math.sin(P.step)*.0075*P.bob*OPT.bob+Math.sin(T*43)*sh*.03;
@@ -6627,6 +7495,7 @@ function step(dt){
   /* ---- weapons ---- */
   if(P.rl>0){P.rl-=dt;if(P.rl<=0)finishReload();}
   if(P.swap>0)P.swap-=dt;
+  if(P.swing>0)P.swing-=dt;
   if(P.melee>0)P.melee-=dt;
   if(P.inspect>0)P.inspect-=dt;
   if(P.papBusy>0){P.papBusy-=dt;if(P.papBusy<=0)vmGun.visible=true;}else vmGun.visible=true;
@@ -6636,6 +7505,7 @@ function step(dt){
   if(held('fire')&&w.auto&&!(w.burst&&P.burst<=0&&T<P.next))shoot();
   if(w.burst&&P.burst>0&&T>=P.next)shoot();
   if(P.swap<=0||P.swap<VM.swapLen*.5)setGunModel(w.mdl);
+  updateAura(dt);
   updateVM(dt);
   var spreadPix=(P.ads?0:1)*(moving?1.5:1);
   $('#cross').style.transform='scale('+(1+spreadPix*.5).toFixed(2)+')';
@@ -6660,12 +7530,13 @@ function step(dt){
   updateZombies(dt);
   updateBox(dt);
   updatePap(dt);
+  updateBalls(dt);
   updateSky(dt);
 
   /* ---- doors ---- */
   for(var d=0;d<DOORS.length;d++){
     var dr=DOORS[d];
-    if(dr.open&&dr.mesh.position.y<dr.y0+6.4)dr.mesh.position.y=Math.min(dr.y0+6.4,dr.mesh.position.y+dt*2.8);
+    if(dr.open&&(dr.sink||0)<1)doorSink(dr,Math.min(1,(dr.sink||0)+dt*.6));
   }
 
   /* ---- power-ups ---- */
@@ -6724,6 +7595,7 @@ function step(dt){
   }
   for(i=0;i<FLICK.length;i++){
     var fl=FLICK[i]; fl.p+=dt*9;
+    if(fl.spin){fl.spin.rotation.x+=dt*1.4;continue;}
     if(fl.gated&&!S.power){
       if(fl.lit){fl.lit=0;fl.l.intensity=0;fl.lens.color.setHex(0x2c3136);}
       continue;
@@ -6847,6 +7719,36 @@ vault:function(g,W,H){
   artLamp(g,W*.8,H*.13,'rgba(255,226,180,.46)');
   artGrade(g,W,H);
 },
+/* the crossing: the saint under the dome, a column of light through the oculus */
+church:function(g,W,H){
+  artSky(g,W,H,'#1a1c26','#2a2620');
+  artGround(g,W,H,H*.7,'#4a4036','#1a1612');
+  var i;
+  // the dome's underside
+  g.fillStyle='#2c3a5a'; g.beginPath(); g.ellipse(W/2,H*.34,W*.46,H*.3,0,Math.PI,0); g.fill();
+  g.strokeStyle='#c8a040'; g.lineWidth=3;
+  for(i=0;i<3;i++){g.beginPath(); g.ellipse(W/2,H*.34,W*(.44-i*.11),H*(.28-i*.075),0,Math.PI,0); g.stroke();}
+  // the oculus and its light
+  var r=g.createLinearGradient(0,H*.08,0,H*.75);
+  r.addColorStop(0,'rgba(255,240,200,.5)'); r.addColorStop(1,'rgba(255,240,200,0)');
+  g.fillStyle=r; g.beginPath(); g.moveTo(W*.47,H*.07); g.lineTo(W*.53,H*.07); g.lineTo(W*.58,H*.75); g.lineTo(W*.42,H*.75); g.closePath(); g.fill();
+  // the stone walls and two stained-glass windows
+  g.fillStyle='#3a342e'; g.fillRect(0,H*.34,W*.16,H*.4); g.fillRect(W*.84,H*.34,W*.16,H*.4);
+  var gc=['#8a1c24','#1c3a8a','#c8a040','#2a6a3a'];
+  for(i=0;i<12;i++){g.fillStyle=gc[i%4]; g.fillRect(W*.05+(i%3)*W*.022,H*.4+Math.floor(i/3)*H*.05,W*.02,H*.045);
+    g.fillStyle=gc[(i+2)%4]; g.fillRect(W*.885+(i%3)*W*.022,H*.4+Math.floor(i/3)*H*.05,W*.02,H*.045);}
+  // the saint: pedestal, robe, raised arms, halo
+  g.fillStyle='#4a4640'; g.fillRect(W*.44,H*.6,W*.12,H*.12);
+  g.fillStyle='#b8b2a6'; g.beginPath(); g.moveTo(W*.47,H*.6); g.lineTo(W*.53,H*.6); g.lineTo(W*.515,H*.4); g.lineTo(W*.485,H*.4); g.closePath(); g.fill();
+  g.beginPath(); g.arc(W/2,H*.37,W*.014,0,6.3); g.fill();
+  g.lineWidth=5; g.strokeStyle='#b8b2a6';
+  g.beginPath(); g.moveTo(W*.49,H*.43); g.lineTo(W*.465,H*.34); g.moveTo(W*.51,H*.43); g.lineTo(W*.535,H*.34); g.stroke();
+  g.strokeStyle='#e0c060'; g.lineWidth=2; g.beginPath(); g.arc(W/2,H*.365,W*.024,0,6.3); g.stroke();
+  // pews in the foreground
+  g.fillStyle='#2a1c12';
+  for(i=0;i<4;i++){g.fillRect(W*(.04+i*.03),H*(.74+i*.06),W*.3,H*.03);g.fillRect(W*(.66-i*.03),H*(.74+i*.06),W*.3,H*.03);}
+  artGrade(g,W,H);
+},
 /* the shed: glasshouse to one side, beds running back, daylight */
 garden:function(g,W,H){
   artSky(g,W,H,'#8ab4dc','#cfd8cd');
@@ -6955,7 +7857,7 @@ function buildMapHero(){
   var m=mapById(MENUMAP),o=mapOpts(m.id);
   var shot=mapShot(m.id);
   $('#mapShot').style.backgroundImage=shot?('url('+shot+')'):'none';
-  $('#mapHero').innerHTML='<h2>'+m.name+'</h2><p>'+m.blurb+'</p>'+
+  $('#mapHero').innerHTML='<h2>'+m.name+'</h2>'+
     '<div class="stats2"><span>LAYOUT <b>'+m.stat+'</b></span>'+
     '<span>DIFFICULTY <b>'+MAPOPT[0].o[o.diff]+'</b></span>'+
     '<span>BEST <b>'+(loadBest(m.id)||'&mdash;')+'</b></span></div>';
@@ -7217,7 +8119,7 @@ function restoreSave(d){
   for(i=0;i<(d.doors||[]).length;i++){
     for(k=0;k<DOORS.length;k++)if(DOORS[k].id===d.doors[i]){
       openDoor(DOORS[k]);
-      DOORS[k].mesh.position.y=DOORS[k].y0+6.4;
+      doorSink(DOORS[k],1);
     }
   }
   P.owned=d.owned||{c9:true};
@@ -7409,6 +8311,8 @@ function resetWorld(){
   ZS.length=0;
   for(i=POWERS.length-1;i>=0;i--)fx.remove(POWERS[i].obj);
   POWERS.length=0;
+  for(i=BALLS.length-1;i>=0;i--)fx.remove(BALLS[i].m);
+  BALLS.length=0;
   for(i=CLOUDS.length-1;i>=0;i--)fx.remove(CLOUDS[i].m);
   CLOUDS.length=0;
   for(i=0;i<PARTS.length;i++){PARTS[i].life=0;PARTS[i].m.visible=false;}
@@ -7418,7 +8322,7 @@ function resetWorld(){
     var d=DOORS[i],has=false;
     for(var j=0;j<COL.length;j++)if(COL[j].tag==='door:'+d.id)has=true;
     if(!has)COL.push(d.col0);
-    d.mesh.position.y=d.y0; d.open=false;
+    doorSink(d,0); d.open=false;
   }
   for(i=0;i<LAMPS.length;i++){LAMPS[i].light.intensity=0;LAMPS[i].bulb.color.setHex(0x2a2a28);}
   for(i=0;i<RACKLED.length;i++)RACKLED[i].color.setHex(0x2d4a36);
@@ -7479,10 +8383,13 @@ function quitToMenu(){
   conClose();
   $('#hud').classList.add('hide'); $('#pause').classList.add('hide');
   $('#dead').classList.add('hide'); $('#home').classList.add('hide');
+  // the step loop that expires buffs has stopped: take their labels down by hand
+  S.dbl=S.insta=S.freeze=S.sale=S.bonfire=S.dm=0; buffKey='x'; refreshBuffs();
   $('#start').classList.remove('hide');
   buildMenu();
 }
 $('#again').addEventListener('click',function(){launch(CURMAP?CURMAP.id:'vault');});
+$('#deadQuit').addEventListener('click',function(){quitToMenu();});
 renderer.domElement.addEventListener('click',function(){
   if(CON.open||!running||over)return;
   if(!$('#settings').classList.contains('hide'))return;
@@ -7904,6 +8811,10 @@ function netPeerState(m){
 }
 function netPeerFx(m){
   if(m.from===NET.id)return;
+  // the host's world effects: shown here, but it is the host that deals their damage
+  if(m.k==='ball'&&m.p&&m.v){fireball(new V3(m.p[0],m.p[1],m.p[2]),new V3(m.v[0],m.v[1],m.v[2]),false);return;}
+  if(m.k==='boom'&&m.p){var bp=new V3(m.p[0],m.p[1],m.p[2]);AU.shot('launch');spray(bp,30,'spark',8);
+    if(bp.distanceTo(P.pos)<8)P.shake=Math.max(P.shake||0,.4);return;}
   var a=NET.av[m.from]; if(!a)return;
   if(m.k==='fire'){
     a.fired=.09;
@@ -8055,7 +8966,7 @@ function netApplyEvent(m){
     return;
   }
   if(m.k==='kill'){
-    if(m.by===NET.id){addPoints(m.p||60);markHit(m.h?'crit':'kill');}
+    if(m.by===NET.id){S.kills++;if(m.h)S.heads++;addPoints(m.p||60);markHit(m.h?'crit':'kill');}
     return;
   }
   if(m.k==='hurt'){
