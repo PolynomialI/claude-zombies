@@ -4178,6 +4178,7 @@ tower:{name:'The Bell Tower',x0:18,x1:32,z0:-24,z1:-2,open:false},
 corrF:{name:'The Choir',x0:-2,x1:2,z0:-42.4,z1:-37.6,open:false},
 choir:{name:'The Choir',x0:-12,x1:12,z0:-54,z1:-42,open:false},
 corrG:{name:'The Catacombs',x0:19.2,x1:27.2,z0:-24,z1:-19.2,open:false},
+corrH:{name:'The Crypt of Saints',x0:-1.2,x1:9.6,z0:-52.8,z1:-48,open:false},
 cryptA:{name:'The Ossuary',x0:0,x1:33.6,z0:14.4,z1:33.6,y:-6,open:false},
 cryptB:{name:'The Catacombs',x0:0,x1:33.6,z0:-9.6,z1:14.4,y:-6,open:false},
 cryptC:{name:'The Bone Pit',x0:0,x1:33.6,z0:-33.6,z1:-9.6,y:-6,open:false},
@@ -4341,7 +4342,8 @@ function updateDrips(dt){
 function buildCatacombs(){
   var K=CRYPT,C=K.C,Y=K.y,H=K.H,i,j,rng=srng(1618);
   var cx=function(i){return K.x0+C/2+i*C;},cz=function(j){return K.z0+C/2+j*C;};
-  var stair=function(i,j){return j===6&&(i===4||i===5);};
+  // two flights down: the bell tower's, and the grand stair at the back of the choir
+  var stair=function(i,j){return (j===6&&(i===4||i===5))||(j===0&&(i===0||i===1));};
   var open={},key=function(a,b,c2,d){return a<c2||(a===c2&&b<d)?a+','+b+'|'+c2+','+d:c2+','+d+'|'+a+','+b;};
   // depth-first carve from the foot of the stair
   var seen={},stack=[[3,6]]; seen['3,6']=1;
@@ -4357,6 +4359,7 @@ function buildCatacombs(){
     open[key(cur[0],cur[1],nx[0],nx[1])]=1; seen[nx[0]+','+nx[1]]=1; stack.push(nx);
   }
   open[key(3,6,4,6)]=1; open[key(4,6,5,6)]=1;
+  open[key(1,0,2,0)]=1; open[key(0,0,1,0)]=1;
   // loops, so there is always a second way round
   for(i=0;i<K.I;i++)for(j=0;j<K.J;j++){
     if(stair(i,j))continue;
@@ -4364,7 +4367,7 @@ function buildCatacombs(){
     if(j+1<K.J&&!stair(i,j+1)&&rng()<.2)open[key(i,j,i,j+1)]=1;
   }
   // four open chambers
-  [[0,0],[5,15],[1,10],[4,1],[2,3]].forEach(function(q){
+  [[5,15],[1,10],[4,1],[2,3]].forEach(function(q){
     open[key(q[0],q[1],q[0]+1,q[1])]=1; open[key(q[0],q[1]+1,q[0]+1,q[1]+1)]=1;
     open[key(q[0],q[1],q[0],q[1]+1)]=1; open[key(q[0]+1,q[1],q[0]+1,q[1]+1)]=1;
   });
@@ -4381,19 +4384,26 @@ function buildCatacombs(){
     wallRun('z',K.x0,za-.31,zb+.31,[{a:cz(winW[n])-1.5,b:cz(winW[n])+1.5}],1,sg[0],wallM);
     wallRun('z',X1,za-.31,zb+.31,[{a:cz(winE[n])-1.5,b:cz(winE[n])+1.5}],-1,sg[0],wallM);
   });
-  wallRun('x',K.z0,K.x0-.31,X1+.31,[{a:cx(1)-1.5,b:cx(1)+1.5},{a:cx(5)-1.5,b:cx(5)+1.5}],1,'cryptD',wallM);
+  wallRun('x',K.z0,K.x0-.31,X1+.31,[{a:cx(3)-1.5,b:cx(3)+1.5},{a:cx(5)-1.5,b:cx(5)+1.5}],1,'cryptD',wallM);
   wallRun('x',Z1,K.x0-.31,X1+.31,[{a:cx(2)-1.5,b:cx(2)+1.5},{a:cx(4)-1.5,b:cx(4)+1.5}],-1,'cryptA',wallM);
   // wallRun draws to the storey height; close the strip up to the ceiling
   box((K.x0+X1)/2,-1,K.z0,X1-K.x0+.6,.6,.62,wallM,false); box((K.x0+X1)/2,-1,Z1,X1-K.x0+.6,.6,.62,wallM,false);
   box(K.x0,-1,(K.z0+Z1)/2,.62,.6,Z1-K.z0,wallM,false); box(X1,-1,(K.z0+Z1)/2,.62,.6,Z1-K.z0,wallM,false);
   floorPatch(K.x0,X1,K.z0,Z1,'concrete',0x4a4440,Y);
   // the storey above: floor everywhere but the stairwell
-  floorSlab(K.x0,19.2,K.z0,Z1,0,CH.stoneD); floorSlab(26.4,X1,K.z0,Z1,0,CH.stoneD);
+  floorSlab(K.x0,9.6,-48,Z1,0,CH.stoneD); floorSlab(9.6,19.2,K.z0,Z1,0,CH.stoneD); floorSlab(26.4,X1,K.z0,Z1,0,CH.stoneD);
   floorSlab(19.2,26.4,K.z0,-24,0,CH.stoneD); floorSlab(19.2,26.4,-19.2,Z1,0,CH.stoneD);
   BASEMENT.push({x0:K.x0,x1:X1,z0:K.z0,z1:Z1,y:Y});
   stairs(19.2,26.4,-24,-19.2,Y,0,'x',1,CH.stoneD,16);
   railing(19.2,26.4,-24,-19.2,0,'nw');
   makeDoor('G',26.8,-21.6,.55,4.8,1500,['cryptA','cryptB','cryptC','cryptD'],false,'corrG');
+  /* the main way down: a wide stone stair at the very back of the church, along the choir's
+     back wall, falling east from the choir floor into the crypt of saints */
+  stairs(K.x0,9.6,K.z0,-48,Y,0,'x',-1,CH.stoneD,16);
+  railing(K.x0,9.6,K.z0,-48,0,'nes');
+  box(4.8,-.9,K.z0-.32,9.6,.9,.04,CH.stoneD,false);
+  makeDoor('H',-.4,-50.4,.55,4.8,1500,['cryptA','cryptB','cryptC','cryptD'],false,'corrH');
+  lamp(-2.4,-50.4,4.2,0xff7040,12,1);
   wallBuy('axe',K.x0+.37,Y+2.2,cz(9),Math.PI/2,'cryptB');
   wallBuy('gauge',X1-.37,Y+2.2,cz(4),-Math.PI/2,'cryptC');
   wallBuy('sickle',cx(3),Y+2.2,Z1-.37,Math.PI,'cryptA');
@@ -4467,7 +4477,7 @@ function buildChurch(){
   var i;
   churchMats();
   placeGenerator(29.5,-13,Math.PI/2,'tower');
-  placePap(0,-52.6,0,'choir');
+  placePap(-6.5,-52.6,0,'choir');
   setBoxSpots([
     {x:-8.6,z:45.6,ry:Math.PI/2,zone:'narthex'},
     {x:10.6,z:31,ry:-Math.PI/2,zone:'nave'},
@@ -4621,7 +4631,7 @@ function buildChurch(){
   wallRun('z',-12,-54.31,-41.69,[{a:-50,b:-47}],1,'choir',CH.stone);
   wallRun('z',12,-54.31,-41.69,[{a:-49,b:-46}],-1,'choir',CH.stone);
   woodCeil(-12.3,12.3,-54.3,-41.7,'x',3);
-  pew(-7.5,-46,5,Math.PI/2); pew(7.5,-46,5,-Math.PI/2);
+  pew(-9.5,-46,4,Math.PI/2); pew(7.5,-44.6,3.4,-Math.PI/2);
   stainedGlass(-3.4,3.4,-53.66,0,1.6,2,1); stainedGlass(3.4,3.4,-53.66,0,1.6,2,2);
   lamp(0,-47,4.3,0xc8a8ff,16,1.1);
   wallBuy('hexa',-11.63,2.2,-44,Math.PI/2,'choir');
