@@ -625,7 +625,7 @@ var T=0;
    thing I am playing actually the build with the fix in it" has a two-second answer: a relay
    serves game.html out of whatever repo it was deployed from, which can lag behind. Bump it
    with the version in package.json. */
-var CZ_VER='6.6.0';
+var CZ_VER='6.7.0';
 
 /* ======================= audio ======================= */
 var AU={ctx:null,master:null,noise:null,lastGroan:0,
@@ -726,14 +726,14 @@ vireo:{name:'Vireo Burst',dmg:230,hs:2.6,mag:36,res:288,rpm:900,burst:3,burstGap
 ray:{name:'Anomaly Ray',dmg:1400,hs:1,mag:20,res:180,rpm:170,auto:false,rl:2.5,spread:.004,pel:1,splash:4,pierce:99,range:75,kick:1.9,ammo:1500,box:true,mdl:'ray',snd:'ray'},
 hexa:{name:'Hexa Launcher',dmg:820,hs:1,mag:6,res:48,rpm:95,auto:false,rl:3.1,spread:.004,pel:1,splash:4.6,pierce:99,range:70,kick:3.2,price:2400,ammo:1400,mdl:'launcher',snd:'launch'},
 sable:{name:'Sable Auto',dmg:110,hs:1.35,mag:10,res:80,rpm:240,auto:true,rl:2.9,spread:.068,pel:9,range:18,fall:[4,14,.3],kick:3.2,price:2600,ammo:1200,mdl:'autoshot',snd:'shotgun'},
-axe:{name:'Woodsman Axe',melee:true,dmg:900,hs:1.6,mag:1,res:0,rpm:75,auto:true,rl:.1,spread:0,pel:1,range:3.4,arc:.55,cleave:3,kick:2.2,ammo:0,box:true,mdl:'axe',snd:'axe'},
-sickle:{name:'Reaper Sickle',melee:true,dmg:520,hs:1.4,mag:1,res:0,rpm:130,auto:true,rl:.1,spread:0,pel:1,range:3,arc:.2,cleave:5,kick:1.2,ammo:0,box:true,mdl:'sickle',snd:'axe'},
-pike:{name:'Boarding Pike',melee:true,dmg:700,hs:2,mag:1,res:0,rpm:95,auto:true,rl:.1,spread:0,pel:1,range:4.6,arc:.9,cleave:6,kick:1.6,ammo:0,box:true,mdl:'pike',snd:'axe'},
+axe:{name:'Woodsman Axe',melee:true,dmg:1100,hs:1.6,mag:1,res:0,rpm:80,auto:true,rl:.1,spread:0,pel:1,range:3.4,arc:.55,cleave:4,kick:2.2,ammo:0,price:1000,mdl:'axe',snd:'axe'},
+sickle:{name:'Reaper Sickle',melee:true,dmg:640,hs:1.4,mag:1,res:0,rpm:140,auto:true,rl:.1,spread:0,pel:1,range:3.2,arc:.2,cleave:6,kick:1.2,ammo:0,price:750,mdl:'sickle',snd:'axe'},
+pike:{name:'Boarding Pike',melee:true,dmg:850,hs:2,mag:1,res:0,rpm:100,auto:true,rl:.1,spread:0,pel:1,range:5,arc:.88,cleave:7,kick:1.6,ammo:0,price:1250,mdl:'pike',snd:'axe'},
 zapp:{name:'Zappatron',dmg:620,hs:1.2,mag:24,res:192,rpm:240,auto:true,rl:2.6,spread:.004,pel:1,chain:4,range:60,kick:1.4,ammo:1500,box:true,maps:['hotel','church'],mdl:'zap',snd:'ray'},
 moss:{name:'Moss Mortar',dmg:260,hs:1,mag:4,res:32,rpm:80,auto:false,rl:3,spread:.004,pel:1,splash:5.2,freeze:4.5,pierce:99,range:60,kick:3,ammo:1300,box:true,maps:['garden'],mdl:'launcher',snd:'launch'},
 dmachine:{name:'Death Machine',dmg:260,hs:1.6,mag:999,res:999,rpm:1150,auto:true,rl:.1,spread:.026,pel:1,pierce:1,range:90,kick:.7,temp:true,mdl:'lmg',snd:'lmg'}
 };
-var BOXPOOL0=['ripsaw','gauge','latch','brack','kestrel','steel','steel','vireo','vireo','sable','hexa','ray','axe','sickle','pike','zapp','zapp','moss','moss'];
+var BOXPOOL0=['ripsaw','gauge','latch','brack','kestrel','steel','steel','vireo','vireo','sable','hexa','ray','zapp','zapp','moss','moss'];
 var BOXPOOL=BOXPOOL0.slice();
 // the box only offers a map's own specials on that map
 function boxPoolFor(id){BOXPOOL=BOXPOOL0.filter(function(g){var m=GUNS[g].maps;return !m||m.indexOf(id)>=0;});}
@@ -959,6 +959,7 @@ scene.add(camera);
 var world=new THREE.Group(),zoms=new THREE.Group(),corpses=new THREE.Group(),fx=new THREE.Group(),deco=new THREE.Group();
 scene.add(world);scene.add(zoms);scene.add(corpses);scene.add(fx);scene.add(deco);
 
+var UNDER=0;
 var hemi=new THREE.HemisphereLight(0x46566f,0x101216,.6); scene.add(hemi);
 var moon=new THREE.DirectionalLight(0x9fb4e0,.62);
 moon.position.set(-34,48,-18); moon.castShadow=true;
@@ -1693,10 +1694,12 @@ function updateSky(dt){
   cA.setHex(a.fog).lerp(cB.setHex(b.fog),f);
   scene.fog.color.copy(cA); scene.background.copy(cA);
   moon.color.copy(cA.setHex(a.sun).lerp(cB.setHex(b.sun),f));
-  moon.intensity=lerp(a.si,b.si,f)*(up?1:.55);
+  // underground there is no sky: fade it out as you go below ground level
+  var under=P&&P.pos?clamp(-P.pos.y/3,0,1):0; UNDER=lerp(UNDER,under,.08);
+  moon.intensity=lerp(a.si,b.si,f)*(up?1:.55)*(1-UNDER*.95);
   hemi.color.copy(cA.setHex(a.sky).lerp(cB.setHex(b.sky),f));
   hemi.groundColor.copy(cA.setHex(a.gnd).lerp(cB.setHex(b.gnd),f));
-  hemi.intensity=lerp(a.hemi,b.hemi,f)*(S.power?1.3:1);
+  hemi.intensity=lerp(a.hemi,b.hemi,f)*(S.power?1.3:1)*(1-UNDER*.8);
   var st=lerp(a.star,b.star,f);
   stars.material.opacity=st*.9;
   sunDisc.material.opacity=up?(1-st)*.55+.12:st*.3;
@@ -1728,6 +1731,14 @@ var COL=[],SPAWNS=[],BUYS=[],LAMPS=[],FLICK=[],DOORS=[];
 /* Every walkable surface above ground level, so nav never puts a node in mid-air over a
    stairwell void. Filled by floorSlab and by each stair tread. */
 var FLOORS=[];
+/* Ground below ground: rects where the natural floor is a basement level instead of y=0. The
+   storey above such a rect has to be real floor (floorSlab), because the clamp that used to
+   catch you at y=0 now catches you at the basement floor. */
+var BASEMENT=[];
+function groundAt(x,z){
+  for(var i=0;i<BASEMENT.length;i++){var b=BASEMENT[i];if(x>=b.x0&&x<=b.x1&&z>=b.z0&&z<=b.z1)return b.y;}
+  return 0;
+}
 /* rack LEDs and console screens are dark until the generator runs */
 var RACKLED=[],SCREENS=[];
 /* Everything a map builds hangs off these two, so unloading a map is one teardown of each.
@@ -1805,11 +1816,11 @@ function wallRun(axis,fixed,from,to,gaps,inward,zone,mat){
       axis==='x'?fixed+inward*1.7:mid2),zone:zone});
   }
 }
-function floorPatch(x0,x1,z0,z1,t,col){
+function floorPatch(x0,x1,z0,z1,t,col,y){
   var g=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),
     new THREE.MeshLambertMaterial({map:tmap(t,(x1-x0)/5,(z1-z0)/5),color:col||0xffffff}));
   g.material.userData.perMap=true;
-  g.rotation.x=-Math.PI/2; g.position.set((x0+x1)/2,.012,(z0+z1)/2); g.receiveShadow=true; MAPG.add(g);
+  g.rotation.x=-Math.PI/2; g.position.set((x0+x1)/2,.012+(y||0),(z0+z1)/2); g.receiveShadow=true; MAPG.add(g);
 }
 var ground=new THREE.Mesh(new THREE.PlaneGeometry(220,220),
   new THREE.MeshLambertMaterial({map:tmap('concrete',44,44),color:0x8d8a84}));
@@ -2454,7 +2465,11 @@ corrE:{name:'The Allotment',x0:-0.4,x1:4.4,z0:26.2,z1:29.8,open:false},
 corrF:{name:'The Cold Frames',x0:27.6,x1:32.4,z0:27.2,z1:30.8,open:false},
 frames:{name:'The Cold Frames',x0:32,x1:48,z0:20,z1:38,open:false},
 corrG:{name:'The Barnyard',x0:-30.4,x1:-23.6,z0:-30,z1:-26,open:false},
-barn:{name:'The Barnyard',x0:-64,x1:-30,z0:-36,z1:4,open:false}
+barn:{name:'The Barnyard',x0:-64,x1:-30,z0:-36,z1:4,open:false},
+corrH:{name:'The Stables',x0:-53,x1:-49,z0:2.4,z1:6,open:false},
+stable:{name:'The Stables',x0:-60,x1:-45,z0:4,z1:18,open:false},
+corrI:{name:'The Tack Room',x0:-53,x1:-49,z0:-38,z1:-34.4,open:false},
+tack:{name:'The Tack Room',x0:-60,x1:-45,z0:-50,z1:-36,open:false}
 };
 
 /* ---- the barnyard: the garden's big open room, west of the pump house ----
@@ -2540,20 +2555,54 @@ function barnFacade(x,z0,z1){
   trimAt(.05,H+1.5,zc,.12,.18,2.6); trimAt(.05,H+.6,zc-1.25,.12,1.9,.16); trimAt(.05,H+.6,zc+1.25,.12,1.9,.16);
   lamp(x+1.2,zc,5.2,0xffd49a,20,1.2);
 }
+/* Either side of the barnyard: the stables (the generator, now the garden's only power) to the
+   north and the tack room (Mule Kick) to the south. Each opens off the yard through a door in
+   its middle; the lanes from those doors to the far wall stay clear. */
+function buildBarnRooms(){
+  var i;
+  floorPatch(-60,-45,4,18,'wood',0x9a7a54); floorPatch(-60,-45,-50,-36,'wood',0x8a6c4c);
+  // stables
+  wallRun('x',18,-60.31,-44.69,[{a:-58,b:-55}],-1,'stable',M.plank);
+  wallRun('z',-60,3.69,18.31,[{a:9,b:12}],1,'stable',M.plank);
+  wallRun('z',-45,3.69,18.31,[{a:12,b:15}],-1,'stable',M.plank);
+  roof(-60.4,-44.6,3.6,18.4,M.plank,3,'x');
+  for(i=0;i<2;i++){box(-57+i*3.2,0,15.5,.18,1.7,5,M.beam);}
+  hay(-58.5,16.6,0,1); hay(-55.5,16.8,.2,2);
+  trough(-58.8,10,Math.PI/2);
+  lamp(-52,11,4.2,0xffd49a,16,1.1);
+  wallBuy('sickle',-51.5,2.2,17.63,Math.PI,'stable');
+  // tack room
+  wallRun('x',-50,-60.31,-44.69,[{a:-57,b:-54}],1,'tack',M.plank);
+  wallRun('z',-60,-50.31,-35.69,[{a:-46,b:-43}],1,'tack',M.plank);
+  wallRun('z',-45,-50.31,-35.69,[{a:-48,b:-45}],-1,'tack',M.plank);
+  roof(-60.4,-44.6,-50.4,-35.6,M.plank,3,'x');
+  for(i=0;i<3;i++){
+    // saddle racks on the west wall: a rail and a saddle over it
+    box(-59.5,1.1,-40+i*-2.6,.7,.12,1.4,M.beam,false);
+    var sd=new THREE.Mesh(new THREE.BoxGeometry(.7,.35,1),new THREE.MeshLambertMaterial({color:0x5a3218}));
+    sd.position.set(-59.4,1.35,-40-i*2.6); MAPG.add(sd);
+  }
+  COL.push({x0:-60,x1:-59,y0:0,y1:1.7,z0:-46.4,z1:-39,tag:null});
+  barrel(-58.8,-48.8,false,M.rust); barrel(-57.6,-49,false,M.rust); crate(-47,-48.6,1.2,1);
+  lamp(-52,-43,4.2,0xffd49a,16,1.1);
+  perkMachine('mule',-45.9,-43.5,-Math.PI/2,'tack');
+  makeDoor('H',-51,4,4,.55,1000,'stable',true,'corrH');
+  makeDoor('I',-51,-36,4,.55,1250,'tack',true,'corrI');
+}
 function buildBarnyard(){
   if(!BARN_RED){
     BARN_RED=lam('siding',3,2,0x9a3526); BARN_TRIM=new THREE.MeshLambertMaterial({color:0xe9e2d2});
     HAY=lam('rags',1,1,0xd8b860);
   }
   floorPatch(-64,-30,-36,4,'loam',0xb89e7c);
-  floorPatch(-58,-36,-24,-8,'turf',0xc8c890);
+  floorPatch(-58,-36,-24,-8,'turf',0xc8c890,.04);
   // the lane in from door G
   box(-27,0,-30.4,6.8,WALL_H,.8,M.brick); box(-27,0,-25.6,6.8,WALL_H,.8,M.brick);
   roof(-30.4,-23.6,-30.8,-25.2,M.plank,0);
   // the yard walls: brick, windows for the dead to climb through on three sides
   wallRun('z',-30,-36.31,4.31,[{a:-30,b:-26,plain:true},{a:-12,b:-9}],-1,'barn',M.brick);
-  wallRun('x',4,-64.31,-29.69,[{a:-52,b:-49},{a:-40,b:-37}],-1,'barn',M.brick);
-  wallRun('x',-36,-64.31,-29.69,[{a:-56,b:-53},{a:-44,b:-41}],1,'barn',M.brick);
+  wallRun('x',4,-64.31,-29.69,[{a:-53,b:-49,plain:true},{a:-40,b:-37}],-1,'barn',M.brick);
+  wallRun('x',-36,-64.31,-29.69,[{a:-53,b:-49,plain:true},{a:-44,b:-41}],1,'barn',M.brick);
   wallRun('z',-64,-36.31,4.31,[{a:-6,b:-3}],1,'barn',M.brick);
   barnFacade(-60,-30,-4);
   // hay: stacked cover down the middle, loose bales by the barn
@@ -2574,14 +2623,16 @@ function buildBarnyard(){
   COL.push({x0:-45,x1:-33,y0:0,y1:1.2,z0:-30.1,z1:-29.9,tag:null});
   postlamp(-46,-28,0xffd49a); postlamp(-36,0,0xffd49a); postlamp(-58,-34,0xffd49a);
   wallBuy('gauge',-30.37,2.2,-6,-Math.PI/2,'barn');
-  wallBuy('brack',-63.63,2.2,-12,Math.PI/2,'barn');
+  wallBuy('axe',-30.37,2.2,-18,-Math.PI/2,'barn');
+  perkMachine('eye',-58.9,-16,Math.PI/2,'barn');
+  buildBarnRooms();
   makeDoor('G',-27,-28,.55,3.7,1500,'barn',false,'corrG');
 }
 
 /* ---- map two: The Garden ---- */
 function buildGarden(){
   CROPSEED=[];
-  placeGenerator(-16,-30,0,'pump');
+  placeGenerator(-48,16.6,0,'stable');
   placePap(44,30,-Math.PI/2,'frames');
   setBoxSpots([
     {x:-17.5,z:5.2,ry:-.5,zone:'shed'},
@@ -2717,8 +2768,6 @@ function buildGarden(){
   perkMachine('boots',-6.2,-6.4,-Math.PI/2,'shed');
   perkMachine('tough',6.2,-10.4,0,'glass');
   perkMachine('quick',24.4,8.4,Math.PI,'glass');
-  perkMachine('eye',-22.4,-19.6,Math.PI/2,'pump');
-  perkMachine('mule',-20.6,17.6,Math.PI/2,'orchard');
   perkMachine('dtap',6.2,18.4,0,'plots');
   perkMachine('band',26.4,38.4,Math.PI,'plots');
   perkMachine('wind',33.6,36.4,-Math.PI/2,'frames');
@@ -2766,7 +2815,7 @@ function stairs(x0,x1,z0,z1,y0,y1,axis,dir,mat,steps){
     m.position.set((sx0+sx1)/2,(y0-.3+top)/2,(sz0+sz1)/2);
     m.castShadow=true; m.receiveShadow=true; MAPG.add(m);
     COL.push({x0:sx0,x1:sx1,y0:y0-.3,y1:top,z0:sz0,z1:sz1,tag:null});
-    FLOORS.push({x0:sx0,x1:sx1,z0:sz0,z1:sz1,y:top});
+    FLOORS.push({x0:sx0,x1:sx1,z0:sz0,z1:sz1,y:top,tread:true});
   }
   // tell nav the two floors are joined here
   var bx=axis==='z'?(x0+x1)/2:(dir>0?x0+run*.5:x1-run*.5);
@@ -3411,7 +3460,7 @@ function buildHotel(){
   railing(25.5,29.5,-10,-5.6,10,'we');
   parapet(20,32,-10,-2,10,M.plank,'we');
   box(20,10,-4,.5,1.35,4,M.plank);
-  acUnit(21,-9,10); acUnit(29.6,-9,10);
+  acUnit(21,-9,10); acUnit(30.9,-3.1,10);
   // the gallery keeps its ceiling; the terrace is the only part of this block that is outside
   floorSlab(6,32,4,17,10,M.wallB,false);
   floorSlab(6,32,-2,4,10,M.wallB,false);
@@ -3478,6 +3527,7 @@ function buildHotel(){
   wallBuy('ripsaw',-4.73,2.2,-6,Math.PI/2,'alley');
   wallBuy('vireo',-10.5,2.2,21,Math.PI/2,'yard');
   wallBuy('latch',-31.63,2.2,7,Math.PI/2,'lobby');
+  wallBuy('axe',-31.63,2.2,-1.5,Math.PI/2,'lobby');
   wallBuy('sable',-29.63,2.2,-11,Math.PI/2,'garden');
   wallBuy('gauge',8.37,2.2,13,Math.PI/2,'office');
   wallBuy('kestrel',-31.63,7.2,3,Math.PI/2,'apartment');
@@ -3741,6 +3791,7 @@ duct(-17,-38,11,'x');
 
 /* ---- wall buys ---- */
 wallBuy('ripsaw',-21.63,2.2,3.5,Math.PI/2,'foyer');
+wallBuy('sickle',-16,2.2,7.63,Math.PI,'foyer');
 wallBuy('gauge',2.37,2.2,-7,Math.PI/2,'ware');
 wallBuy('latch',23.63,2.2,3,-Math.PI/2,'ware');
 wallBuy('brack',21.63,2.2,24,-Math.PI/2,'yard');
@@ -3878,6 +3929,7 @@ function buildTall(){
 /* A raised node has to have something under it. Without this the nav lattice happily
    spans a stairwell opening and zombies walk out over the drop. Ground level is exempt:
    the maps that predate multi-storey build their floor from the world ground plane. */
+function standable(x,z,y){return groundAt(x,z)===y||onFloor(x,z,y);}
 function onFloor(x,z,y){
   for(var i=0;i<FLOORS.length;i++){
     var f=FLOORS[i];
@@ -3928,7 +3980,8 @@ function buildNav(){
       var k=i+'_'+j+'_'+lv; if(NIDX[k]!==undefined)continue;
       var x=i*GRID,z=j*GRID;
       if(blocked(x,z,.62,zy))continue;
-      if(zy>0&&!onFloor(x,z,zy))continue;
+      // a node needs floor under it unless it stands on the natural ground of that spot
+      if(zy!==groundAt(x,z)&&!(standable(x,z,zy)&&standable(x-.3,z,zy)&&standable(x+.3,z,zy)&&standable(x,z-.3,zy)&&standable(x,z+.3,zy)))continue;
       NIDX[k]=NAV.length;
       NAV.push({p:new V3(x,zy,z),zone:key,gi:i,gj:j,lv:lv,e:[]});
     }
@@ -4123,7 +4176,12 @@ chapel:{name:'The Lady Chapel',x0:-32,x1:-18,z0:-24,z1:-2,open:false},
 corrE:{name:'The Bell Tower',x0:13.6,x1:18.4,z0:-15,z1:-11,open:false},
 tower:{name:'The Bell Tower',x0:18,x1:32,z0:-24,z1:-2,open:false},
 corrF:{name:'The Choir',x0:-2,x1:2,z0:-42.4,z1:-37.6,open:false},
-choir:{name:'The Choir',x0:-12,x1:12,z0:-54,z1:-42,open:false}
+choir:{name:'The Choir',x0:-12,x1:12,z0:-54,z1:-42,open:false},
+corrG:{name:'The Catacombs',x0:19.2,x1:27.2,z0:-24,z1:-19.2,open:false},
+cryptA:{name:'The Ossuary',x0:0,x1:33.6,z0:14.4,z1:33.6,y:-6,open:false},
+cryptB:{name:'The Catacombs',x0:0,x1:33.6,z0:-9.6,z1:14.4,y:-6,open:false},
+cryptC:{name:'The Bone Pit',x0:0,x1:33.6,z0:-33.6,z1:-9.6,y:-6,open:false},
+cryptD:{name:'The Crypt of Saints',x0:0,x1:33.6,z0:-52.8,z1:-33.6,y:-6,open:false}
 };
 var CH={};
 function churchMats(){
@@ -4257,6 +4315,154 @@ function bookcase(x,z,ry,len){
   var c=Math.abs(Math.cos(ry||0)),s=Math.abs(Math.sin(ry||0));
   COL.push({x0:x-(c*len/2+s*.3),x1:x+(c*len/2+s*.3),y0:0,y1:3,z0:z-(s*len/2+c*.3),z1:z+(s*len/2+c*.3),tag:null});
 }
+/* ---- the catacombs: a maze under the east half of the cathedral ----
+   Six metres down, reached by the stair along the bell tower's south wall (door G). A 7 x 18
+   grid of 4.8 m cells carved into a maze by a SEEDED generator, so every browser in a co-op
+   game builds the same one, then loosened with extra openings and four open chambers so it
+   forks and loops instead of dead-ending you. Cell centres sit on the nav lattice and the
+   walls sit between lattice points, so every opening is a nav edge. The storey above is real
+   floor (floorSlab) over the whole footprint except the stairwell. */
+var CRYPT={x0:0,z0:-52.8,C:4.8,I:7,J:18,y:-6,H:5.6};
+var DRIPS=[];
+function srng(seed){
+  return function(){
+    seed=seed+0x6D2B79F5|0;
+    var t=Math.imul(seed^seed>>>15,1|seed);
+    t=t+Math.imul(t^t>>>7,61|t)^t;
+    return ((t^t>>>14)>>>0)/4294967296;
+  };
+}
+function updateDrips(dt){
+  for(var i=0;i<DRIPS.length;i++){
+    var d=DRIPS[i]; d.v+=dt*9.8; d.m.position.y-=d.v*dt;
+    if(d.m.position.y<d.floor){d.m.position.y=d.top;d.v=0;}
+  }
+}
+function buildCatacombs(){
+  var K=CRYPT,C=K.C,Y=K.y,H=K.H,i,j,rng=srng(1618);
+  var cx=function(i){return K.x0+C/2+i*C;},cz=function(j){return K.z0+C/2+j*C;};
+  var stair=function(i,j){return j===6&&(i===4||i===5);};
+  var open={},key=function(a,b,c2,d){return a<c2||(a===c2&&b<d)?a+','+b+'|'+c2+','+d:c2+','+d+'|'+a+','+b;};
+  // depth-first carve from the foot of the stair
+  var seen={},stack=[[3,6]]; seen['3,6']=1;
+  while(stack.length){
+    var cur=stack[stack.length-1],nb=[],dirs=[[1,0],[-1,0],[0,1],[0,-1]],d;
+    for(d=0;d<4;d++){
+      var ni=cur[0]+dirs[d][0],nj=cur[1]+dirs[d][1];
+      if(ni<0||nj<0||ni>=K.I||nj>=K.J||stair(ni,nj)||seen[ni+','+nj])continue;
+      nb.push([ni,nj]);
+    }
+    if(!nb.length){stack.pop();continue;}
+    var nx=nb[Math.floor(rng()*nb.length)];
+    open[key(cur[0],cur[1],nx[0],nx[1])]=1; seen[nx[0]+','+nx[1]]=1; stack.push(nx);
+  }
+  open[key(3,6,4,6)]=1; open[key(4,6,5,6)]=1;
+  // loops, so there is always a second way round
+  for(i=0;i<K.I;i++)for(j=0;j<K.J;j++){
+    if(stair(i,j))continue;
+    if(i+1<K.I&&!stair(i+1,j)&&rng()<.2)open[key(i,j,i+1,j)]=1;
+    if(j+1<K.J&&!stair(i,j+1)&&rng()<.2)open[key(i,j,i,j+1)]=1;
+  }
+  // four open chambers
+  [[0,0],[5,15],[1,10],[4,1],[2,3]].forEach(function(q){
+    open[key(q[0],q[1],q[0]+1,q[1])]=1; open[key(q[0],q[1]+1,q[0]+1,q[1]+1)]=1;
+    open[key(q[0],q[1],q[0],q[1]+1)]=1; open[key(q[0]+1,q[1],q[0]+1,q[1]+1)]=1;
+  });
+  var wallM=lam('brickwall',2,2,0x3e3630),capM=new THREE.MeshLambertMaterial({color:0x1a1612});
+  for(i=0;i<K.I;i++)for(j=0;j<K.J;j++){
+    if(i+1<K.I&&!open[key(i,j,i+1,j)])box(K.x0+(i+1)*C,Y,cz(j),.6,H,C+.6,wallM);
+    if(j+1<K.J&&!open[key(i,j,i,j+1)])box(cx(i),Y,K.z0+(j+1)*C,C+.6,H,.6,wallM);
+  }
+  // the outer wall, per zone so each window's zombies belong to the right room
+  var X1=K.x0+K.I*C,Z1=K.z0+K.J*C,segs=[['cryptD',0,4],['cryptC',4,9],['cryptB',9,14],['cryptA',14,18]];
+  var winW=[1,6,11,16],winE=[2,8,12,15];
+  segs.forEach(function(sg,n){
+    var za=K.z0+sg[1]*C,zb=K.z0+sg[2]*C;
+    wallRun('z',K.x0,za-.31,zb+.31,[{a:cz(winW[n])-1.5,b:cz(winW[n])+1.5}],1,sg[0],wallM);
+    wallRun('z',X1,za-.31,zb+.31,[{a:cz(winE[n])-1.5,b:cz(winE[n])+1.5}],-1,sg[0],wallM);
+  });
+  wallRun('x',K.z0,K.x0-.31,X1+.31,[{a:cx(1)-1.5,b:cx(1)+1.5},{a:cx(5)-1.5,b:cx(5)+1.5}],1,'cryptD',wallM);
+  wallRun('x',Z1,K.x0-.31,X1+.31,[{a:cx(2)-1.5,b:cx(2)+1.5},{a:cx(4)-1.5,b:cx(4)+1.5}],-1,'cryptA',wallM);
+  // wallRun draws to the storey height; close the strip up to the ceiling
+  box((K.x0+X1)/2,-1,K.z0,X1-K.x0+.6,.6,.62,wallM,false); box((K.x0+X1)/2,-1,Z1,X1-K.x0+.6,.6,.62,wallM,false);
+  box(K.x0,-1,(K.z0+Z1)/2,.62,.6,Z1-K.z0,wallM,false); box(X1,-1,(K.z0+Z1)/2,.62,.6,Z1-K.z0,wallM,false);
+  floorPatch(K.x0,X1,K.z0,Z1,'concrete',0x4a4440,Y);
+  // the storey above: floor everywhere but the stairwell
+  floorSlab(K.x0,19.2,K.z0,Z1,0,CH.stoneD); floorSlab(26.4,X1,K.z0,Z1,0,CH.stoneD);
+  floorSlab(19.2,26.4,K.z0,-24,0,CH.stoneD); floorSlab(19.2,26.4,-19.2,Z1,0,CH.stoneD);
+  BASEMENT.push({x0:K.x0,x1:X1,z0:K.z0,z1:Z1,y:Y});
+  stairs(19.2,26.4,-24,-19.2,Y,0,'x',1,CH.stoneD,16);
+  railing(19.2,26.4,-24,-19.2,0,'nw');
+  makeDoor('G',26.8,-21.6,.55,4.8,1500,['cryptA','cryptB','cryptC','cryptD'],false,'corrG');
+  wallBuy('axe',K.x0+.37,Y+2.2,cz(9),Math.PI/2,'cryptB');
+  wallBuy('gauge',X1-.37,Y+2.2,cz(4),-Math.PI/2,'cryptC');
+  wallBuy('sickle',cx(3),Y+2.2,Z1-.37,Math.PI,'cryptA');
+  /* dressing: nothing here collides, so the maze's nav is exactly its walls */
+  var bone=new THREE.MeshLambertMaterial({color:0xb8ab90}),blood=new THREE.MeshBasicMaterial({color:0x240303}),
+      bloodW=new THREE.MeshBasicMaterial({color:0x2e0404}),iron=new THREE.MeshLambertMaterial({color:0x2a2622}),
+      rot=new THREE.MeshLambertMaterial({map:TX.flesh.map,color:0x6a7454}),rag=new THREE.MeshLambertMaterial({map:TX.rags.map,color:0x4a2a22}),
+      wood=CH.wood,drip=new THREE.MeshBasicMaterial({color:0x7a0a0a});
+  var gBone=new THREE.BoxGeometry(.05,.05,.42),gSkull=new THREE.SphereGeometry(.13,7,5),gRib=new THREE.BoxGeometry(.34,.035,.06),
+      gChain=new THREE.CylinderGeometry(.025,.025,1,4),gPool=new THREE.CircleGeometry(1,12),gDrip=new THREE.BoxGeometry(.03,.07,.03);
+  var add=function(geo,mat,x,y,z,rx,ry,rz){var m=noRay(new THREE.Mesh(geo,mat));m.position.set(x,y,z);m.rotation.set(rx||0,ry||0,rz||0);MAPD.add(m);return m;};
+  function bones(x,z,n){
+    for(var k=0;k<n;k++)add(gBone,bone,x+(rng()-.5)*1.2,Y+.04+k*.02,z+(rng()-.5)*1.2,Math.PI/2*(rng()<.5?0:1),rng()*6.3,0);
+    add(gSkull,bone,x+(rng()-.5)*.8,Y+.12,z+(rng()-.5)*.8);
+  }
+  function skeleton(x,z,ry){
+    // slumped against a wall: skull, spine, ribs, legs out in front
+    var fx=Math.sin(ry),fz=Math.cos(ry);
+    add(gSkull,bone,x,Y+.95,z,.3,ry,0);
+    add(new THREE.BoxGeometry(.05,.6,.05),bone,x+fx*.05,Y+.55,z+fz*.05,-.2,ry,0);
+    for(var r=0;r<4;r++)add(gRib,bone,x+fx*.1,Y+.45+r*.1,z+fz*.1,0,ry,0);
+    for(var l=0;l<2;l++)add(gBone,bone,x+fx*.35+(l?.12:-.12)*fz,Y+.08,z+fz*.35-(l?.12:-.12)*fx,0,ry,0);
+  }
+  function chain(x,z,len){add(gChain,iron,x,-.4-len/2,z).scale.y=len;}
+  function corpse(x,z){
+    // strung up by the wrists and still dripping
+    var top=-.4,hang=Y+2.55+rng()*.35;   // feet above head height: you walk under them
+    chain(x,z,top-(hang+1.35));
+    add(new THREE.BoxGeometry(.42,.75,.26),rot,x,hang+.8,z,0,rng()*6.3,(rng()-.5)*.2);
+    add(new THREE.BoxGeometry(.3,.3,.3),rot,x,hang+1.32,z,.5,0,0);
+    add(new THREE.BoxGeometry(.4,.5,.24),rag,x,hang+.3,z);
+    add(new THREE.BoxGeometry(.12,.55,.12),rot,x-.12,hang-.2,z); add(new THREE.BoxGeometry(.12,.55,.12),rot,x+.12,hang-.2,z);
+    add(gPool,blood,x,Y+.02,z,-Math.PI/2,0,0).scale.setScalar(.5+rng()*.5);
+    for(var k=0;k<3;k++){
+      var dm=add(gDrip,drip,x+(rng()-.5)*.3,hang-.5,z+(rng()-.5)*.3);
+      DRIPS.push({m:dm,top:hang-.5,floor:Y+.05,v:rng()*3});
+    }
+  }
+  function cross(x,z,ry){
+    var fx=Math.sin(ry),fz=Math.cos(ry);
+    add(new THREE.BoxGeometry(.16,2.6,.12),wood,x+fx*.1,Y+2.2,z+fz*.1,0,ry,0);
+    add(new THREE.BoxGeometry(1.2,.16,.12),wood,x+fx*.1,Y+2.9,z+fz*.1,0,ry,0);
+  }
+  function smear(x,z,ry){add(new THREE.PlaneGeometry(.8+rng(),.6+rng()*1.4),bloodW,x,Y+1+rng()*1.5,z,0,ry,0);}
+  /* each cell gets something, chosen by the same seeded roll, placed against a wall it has */
+  var torches=0;
+  for(i=0;i<K.I;i++)for(j=0;j<K.J;j++){
+    if(stair(i,j))continue;
+    var x=cx(i),z=cz(j),roll=rng();
+    // a wall on the cell's west side (or the outer wall) to lean things against
+    var wWest=i===0||!open[key(i-1,j,i,j)],wEast=i===K.I-1||!open[key(i,j,i+1,j)];
+    var wx=wWest?x-C/2+.4:(wEast?x+C/2-.4:null),wry=wWest?Math.PI/2:-Math.PI/2;
+    if(roll<.22)corpse(x+(rng()-.5)*1.4,z+(rng()-.5)*1.4);
+    else if(roll<.44)bones(x+(rng()-.5)*1.6,z+(rng()-.5)*1.6,6+(rng()*6|0));
+    if(wx!==null){
+      var r2=rng();
+      if(r2<.3)skeleton(wx,z+(rng()-.5)*2,wry);
+      else if(r2<.52)cross(wx-Math.sin(wry)*.25,z,wry);
+      else if(r2<.7)smear(wx-Math.sin(wry)*.33,z+(rng()-.5)*2,wry);
+    }
+    if(rng()<.3){chain(x+(rng()-.5)*2,z+(rng()-.5)*2,1+rng()*2.5);chain(x+(rng()-.5)*2,z+(rng()-.5)*2,1+rng()*2);}
+    if(rng()<.35)add(gPool,blood,x+(rng()-.5)*2.4,Y+.015,z+(rng()-.5)*2.4,-Math.PI/2,0,0).scale.setScalar(.4+rng()*.9);
+    if((i+j*3)%7===0&&torches<12){
+      torches++;
+      lamp(x,z,Y+4.6,torches%3?0xff5a2a:0xc02020,13,1.05);
+      candles(x+.8,z,Y,5);
+    }
+  }
+}
 function buildChurch(){
   var i;
   churchMats();
@@ -4298,6 +4504,7 @@ function buildChurch(){
   stainedGlass(0,3.4,47.66,Math.PI,2,2.2,0);
   perkMachine('tough',9.1,40,-Math.PI/2,'narthex');
   wallBuy('ripsaw',-9.63,2.2,39.6,Math.PI/2,'narthex');
+  wallBuy('pike',9.63,2.2,46.4,-Math.PI/2,'narthex');
 
   /* ---- the nave: pews either side of the runner, a cross aisle for the side doors ---- */
   wallRun('x',34,-12.31,12.31,[{a:-2,b:2,plain:true}],-1,'nave',CH.stone);
@@ -4387,7 +4594,7 @@ function buildChurch(){
   woodCeil(13.6,18.4,-15.8,-10.2,'x',1);
   wallRun('z',18,-24.31,-1.69,[{a:-15,b:-11,plain:true}],1,'tower',CH.stoneD);
   wallRun('z',32,-24.31,-1.69,[{a:-20,b:-17},{a:-9,b:-6}],-1,'tower',CH.stoneD);
-  wallRun('x',-24,17.69,32.31,[{a:24,b:27}],1,'tower',CH.stoneD);
+  wallRun('x',-24,17.69,32.31,[{a:29.8,b:31.6}],1,'tower',CH.stoneD);
   wallRun('x',-2,17.69,32.31,[{a:22,b:25}],-1,'tower',CH.stoneD);
   // the middle is open to the bell shaft
   woodCeil(17.7,32.3,-24.3,-17,'x',2); woodCeil(17.7,32.3,-9,-1.7,'x',2);
@@ -4400,7 +4607,8 @@ function buildChurch(){
   var bell=noRay(new THREE.Mesh(new THREE.CylinderGeometry(.5,1.2,1.6,14,1,true),bm)); bell.position.set(25,11,-13); MAPG.add(bell);
   var rope=noRay(new THREE.Mesh(new THREE.CylinderGeometry(.03,.03,9,4),CH.cloth)); rope.position.set(25,5.7,-13); MAPG.add(rope);
   box(25,14,-13,8.4,.4,8.4,CH.wood,false);
-  crate(20,-22.6,1.3,1.1); crate(21.5,-22.6,1.1,.8,.3); barrel(30.4,-22.4,false,M.rust);
+  crate(30.6,-3.6,1.3,1.1); barrel(19.4,-4.2,false,M.rust);
+  buildCatacombs();
   lamp(25,-5,4.3,0xffd8a0,14,1);
   wallBuy('sable',31.63,2.2,-13.8,-Math.PI/2,'tower');
   perkMachine('mule',25,-2.9,Math.PI,'tower');
@@ -4439,7 +4647,7 @@ var MAPS=[
  zones:VAULTZONES,build:buildVault,sealed:true},
 {id:'garden',name:'The Garden',
  blurb:'A walled kitchen garden gone to seed. Glasshouse, orchard, allotment beds, a pump house with the only working generator, and a barnyard out the back.',
- stat:'7 rooms · 7 doors · 8 perks',
+ stat:'9 rooms · 9 doors · 8 perks',
  start:{x:-17,z:0,yaw:Math.PI/2},home:'shed',sky:.28,
  zones:GARDENZONES,build:buildGarden},
 {id:'hotel',name:'The Hotel',
@@ -4450,7 +4658,7 @@ var MAPS=[
  zones:HOTELZONES,build:buildHotel},
 {id:'church',name:'The Cathedral',
  blurb:'A stone church in dark wood under a great dome. Pews down the nave, a saint in the crossing, a stage, and six rooms off the sides.',
- stat:'8 rooms · 6 doors · 8 perks',
+ stat:'8 rooms + catacombs · 7 doors · 2 floors',
  start:{x:0,z:44,yaw:0},home:'narthex',sky:.12,
  zombies:{walker:1,runner:1.2,crawler:1,brute:.8,screamer:1.3,bloater:.7},
  zones:CHURCHZONES,build:buildChurch}
@@ -4493,7 +4701,7 @@ function loadMap(id){
   CURMAP=m;
   clearMapGroup(MAPG); clearMapGroup(MAPD); clearMapGroup(flora);
   NAVLINKS.length=0;
-  COL.length=0; FLOORS.length=0; SPAWNS.length=0; BUYS.length=0; LAMPS.length=0; FLICK.length=0;
+  COL.length=0; FLOORS.length=0; BASEMENT.length=0; DRIPS.length=0; SPAWNS.length=0; BUYS.length=0; LAMPS.length=0; FLICK.length=0;
   DOORS.length=0; RACKLED.length=0; SCREENS.length=0;
   grassIM=null;
   setZones(m.zones);
@@ -5174,7 +5382,8 @@ function heavySwing(w){
     hit.push([d,z]);
   }
   hit.sort(function(a,b){return a[0]-b[0];});
-  var base=wDmg(gunId())*dmgMul();
+  // a wall weapon has to stay worth carrying: it grows with the round the way zombies do
+  var base=wDmg(gunId())*dmgMul()*(1+S.round*.12);
   for(i=0;i<hit.length&&i<w.cleave;i++){
     var zz=hit[i][1];
     spray(zz.obj.position.clone().setY(P.pos.y+1.3),8,'blood',3.8);
@@ -5687,7 +5896,7 @@ function zTarget(z){
 }
 var Z_STEP=1.35;
 function zMove(z,dx,dz){
-  var r=.36*z.sz,pos=z.obj.position,i,c,sup=0;
+  var r=.36*z.sz,pos=z.obj.position,i,c,sup=groundAt(pos.x,pos.z);
   pos.x+=dx;
   for(i=0;i<COL.length;i++){
     c=COL[i];
@@ -6727,7 +6936,7 @@ function fireball(p,v,live){
 function updateBalls(dt){
   for(var i=BALLS.length-1;i>=0;i--){
     var b=BALLS[i],p=b.m.position; p.addScaledVector(b.v,dt); b.life-=dt;
-    var gone=b.life<=0||blocked(p.x,p.z,.05,p.y-1.4)||p.y<0;
+    var gone=b.life<=0||blocked(p.x,p.z,.05,p.y-1.4)||p.y<groundAt(p.x,p.z);
     if(!gone&&b.live)for(var k=0;k<PL.length;k++){
       var e=PL[k],dx=e.pos.x-p.x,dz=e.pos.z-p.z,dy=(e.pos.y+1.1)-p.y;
       if(dx*dx+dz*dz<.36&&Math.abs(dy)<1){hurtPl(e,20,p);gone=true;break;}
@@ -7473,7 +7682,8 @@ function step(dt){
   var fallV=P.vel.y;
   moveAxis('x',P.vel.x*dt); moveAxis('z',P.vel.z*dt); moveAxis('y',P.vel.y*dt);
   depenetrate();
-  if(P.pos.y<0){P.pos.y=0;P.vel.y=0;P.ground=true;}
+  var gY=groundAt(P.pos.x,P.pos.z);
+  if(P.pos.y<gY){P.pos.y=gY;P.vel.y=0;P.ground=true;}
   if(P.ground&&fallV<-3.4){
     P.land=Math.min(1,-fallV/13);
     AU.burst(.16+P.land*.14,.13,430,90,1);
@@ -7531,6 +7741,7 @@ function step(dt){
   updateBox(dt);
   updatePap(dt);
   updateBalls(dt);
+  updateDrips(dt);
   updateSky(dt);
 
   /* ---- doors ---- */
